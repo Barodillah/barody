@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     Code2,
     Heart,
@@ -12,12 +13,25 @@ import {
     Zap,
     Search,
     Layers,
-    Repeat
+    Repeat,
+    Phone,
+    X,
+    Check,
+    Clock,
+    Sunrise,
+    Sun,
+    Sunset,
+    Rocket,
+    Sparkles
 } from 'lucide-react';
 
 const App = () => {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const initialTheme = searchParams.get('theme') || 'logic';
+
     // Mode state: 'logic' (Tech) or 'satisfaction' (Human/CS)
-    const [mode, setMode] = useState('logic');
+    const [mode, setMode] = useState(initialTheme);
     const [scrolled, setScrolled] = useState(false);
     const [timelineProgress, setTimelineProgress] = useState(0);
 
@@ -37,9 +51,98 @@ const App = () => {
     // Balloon attachment state
     const [balloonAttached, setBalloonAttached] = useState(true);
 
+    // Page transition state
+    const [isTransitioning, setIsTransitioning] = useState(false);
+
+    // Strategy Call Modal state
+    const [showCallModal, setShowCallModal] = useState(false);
+    const [callStep, setCallStep] = useState(1);
+    const [selectedTime, setSelectedTime] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showConfetti, setShowConfetti] = useState(false);
+    const phoneInputRef = useRef(null);
+
     const timelineRef = useRef(null);
     const canvasRef = useRef(null);
     const mouseRef = useRef({ x: null, y: null, radius: 150 });
+
+    // Navigate to chat with transition
+    const navigateToChat = () => {
+        setIsTransitioning(true);
+        setTimeout(() => {
+            navigate(`/chat?theme=${mode}`);
+        }, 600);
+    };
+
+    // Strategy Call Modal Handlers
+    const timeSlots = [
+        { id: 'pagi', label: 'Pagi', time: '09:00 - 11:00', emoji: '🌅', IconComponent: Sunrise },
+        { id: 'siang', label: 'Siang', time: '13:00 - 15:00', emoji: '☀️', IconComponent: Sun },
+        { id: 'sore', label: 'Sore', time: '16:00 - 18:00', emoji: '🌆', IconComponent: Sunset },
+    ];
+
+    const openCallModal = () => {
+        setShowCallModal(true);
+        setCallStep(1);
+        setSelectedTime('');
+        setPhoneNumber('');
+        setShowConfetti(false);
+    };
+
+    const closeCallModal = () => {
+        setShowCallModal(false);
+        setCallStep(1);
+        setSelectedTime('');
+        setPhoneNumber('');
+        setShowConfetti(false);
+    };
+
+    const handleTimeSelect = (timeId) => {
+        setSelectedTime(timeId);
+        // Auto advance to step 2 after short delay
+        setTimeout(() => {
+            setCallStep(2);
+            // Focus phone input after transition
+            setTimeout(() => {
+                phoneInputRef.current?.focus();
+            }, 400);
+        }, 300);
+    };
+
+    const formatPhoneNumber = (value) => {
+        // Remove non-digits
+        const digits = value.replace(/\D/g, '');
+        // Format as 0812-3456-7890
+        if (digits.length <= 4) return digits;
+        if (digits.length <= 8) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+        return `${digits.slice(0, 4)}-${digits.slice(4, 8)}-${digits.slice(8, 12)}`;
+    };
+
+    const handlePhoneChange = (e) => {
+        const formatted = formatPhoneNumber(e.target.value);
+        setPhoneNumber(formatted);
+    };
+
+    const isPhoneValid = phoneNumber.replace(/\D/g, '').length >= 10;
+
+    const handleCallSubmit = () => {
+        if (!isPhoneValid) return;
+
+        setIsSubmitting(true);
+
+        // Simulate submission
+        setTimeout(() => {
+            setIsSubmitting(false);
+            setCallStep(3);
+            setShowConfetti(true);
+
+            // Auto close after success
+            setTimeout(() => {
+                closeCallModal();
+            }, 3000);
+        }, 1000);
+    };
 
     // --- Background Particles (Anti-Gravity) Logic ---
     useEffect(() => {
@@ -243,8 +346,21 @@ const App = () => {
                 className="fixed inset-0 z-0 pointer-events-none opacity-60"
             />
 
+            {/* Page Transition Overlay */}
+            {isTransitioning && (
+                <div className="page-transition-overlay">
+                    <div className={`page-transition-circle ${mode}`}>
+                        <div className="flex items-center justify-center h-full gap-2">
+                            <span className="transition-loading-dot"></span>
+                            <span className="transition-loading-dot"></span>
+                            <span className="transition-loading-dot"></span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* --- Navigation & Toggle --- */}
-            <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'py-4 backdrop-blur-md border-b ' + theme.border : 'py-6'}`}>
+            <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'py-4 backdrop-blur-md border-b ' + theme.border + (isLogic ? ' bg-slate-950/80' : ' bg-white/95') : 'py-6'}`}>
                 <div className="container mx-auto px-6 flex justify-between items-center">
                     <div className="flex items-center gap-2">
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isLogic ? 'bg-cyan-500/20 text-cyan-400' : 'bg-rose-500/10 text-rose-500'}`}>
@@ -358,16 +474,22 @@ const App = () => {
                         <p className={`text-xl md:text-2xl max-w-2xl mb-12 leading-relaxed opacity-80 ${isLogic ? 'font-light' : 'font-medium italic'}`}>
                             {isLogic
                                 ? "Saya Barod Yoedhistira. Developer yang memahami algoritma secara mendalam untuk performa sistem yang tak tertandingi."
-                                : "Halo, saya Barod. Mantan CS Manager yang kini menulis kode untuk menyelesaikan masalah nyata manusia, bukan sekadar bug."
+                                : "Halo, saya Barod Yoedhistira, CS Manager yang juga menulis kode untuk menyelesaikan masalah nyata manusia, bukan sekadar bug."
                             }
                         </p>
 
                         <div className="flex flex-wrap gap-4 relative z-20">
-                            <button className={`px-8 py-4 rounded-xl flex items-center gap-3 font-bold transition-all transform hover:scale-105 active:scale-95 ${isLogic ? 'bg-cyan-500 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,0.3)]' : 'bg-rose-500 text-white shadow-[0_0_20px_rgba(244,63,94,0.3)]'}`}>
+                            <button
+                                onClick={() => isLogic ? window.open('https://github.com/Barodillah', '_blank') : navigateToChat()}
+                                className={`px-8 py-4 rounded-xl flex items-center gap-3 font-bold transition-all transform hover:scale-105 active:scale-95 ${isLogic ? 'bg-cyan-500 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,0.3)]' : 'bg-rose-500 text-white shadow-[0_0_20px_rgba(244,63,94,0.3)]'}`}
+                            >
                                 {isLogic ? <Github size={20} /> : <MessageSquare size={20} />}
                                 {isLogic ? "Review My Logic" : "Start a Conversation"}
                             </button>
-                            <button className={`px-8 py-4 rounded-xl border font-bold transition-all flex items-center gap-2 hover:bg-white/10 active:scale-95 ${theme.border}`}>
+                            <button
+                                onClick={openCallModal}
+                                className={`px-8 py-4 rounded-xl border font-bold transition-all flex items-center gap-2 hover:bg-white/10 active:scale-95 ${theme.border}`}
+                            >
                                 Request Strategy Call <ChevronRight size={18} />
                             </button>
                         </div>
@@ -382,11 +504,11 @@ const App = () => {
 
                     <div className="relative max-w-5xl mx-auto">
                         {/* Center Line */}
-                        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-500/20 hidden md:block"></div>
+                        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-500/20"></div>
 
                         {/* Scroll Particle (Follows for both modes) */}
                         <div
-                            className={`absolute left-1/2 -ml-[3px] w-[7px] h-20 bg-gradient-to-b from-transparent ${theme.accentGradient} to-transparent z-0 blur-[2px] hidden md:block`}
+                            className={`absolute left-1/2 -ml-[3px] w-[7px] h-20 bg-gradient-to-b from-transparent ${theme.accentGradient} to-transparent z-0 blur-[2px]`}
                             style={{ top: `${timelineProgress * 100}%`, transition: 'top 0.15s ease-out' }}
                         >
                             <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full transition-colors duration-500 ${isLogic ? 'bg-cyan-400 shadow-[0_0_15px_#22d3ee]' : 'bg-rose-500 shadow-[0_0_15px_#f43f5e]'}`}></div>
@@ -395,7 +517,7 @@ const App = () => {
                         {/* Timeline Items */}
                         {[
                             {
-                                year: '2021 - Present',
+                                year: '2020 - Present',
                                 side: 'left',
                                 title: 'Fullstack Web Developer',
                                 desc: 'Membangun arsitektur Laravel yang scalable dengan optimasi database tingkat tinggi.',
@@ -404,7 +526,7 @@ const App = () => {
                                 color: 'text-cyan-400'
                             },
                             {
-                                year: '2018 - 2021',
+                                year: '2022 - Present',
                                 side: 'right',
                                 title: 'Customer Satisfaction Manager',
                                 desc: 'Memimpin tim untuk menjaga NPS di angka 90+ dan menangani krisis komunikasi pelanggan.',
@@ -416,7 +538,7 @@ const App = () => {
                                 year: 'The Intersection',
                                 side: 'center',
                                 title: 'Hybrid Solution Architect',
-                                desc: 'Membangun sistem tiket otomatis yang menurunkan komplain pelanggan sebesar 40% melalui UX yang intuitif.',
+                                desc: 'Membangun sistem booking otomatis yang menurunkan komplain pelanggan sebesar 40% melalui UX yang intuitif.',
                                 icon: <Zap />,
                                 tag: 'The Sweet Spot',
                                 color: 'text-amber-400'
@@ -601,8 +723,8 @@ const App = () => {
                             },
                             {
                                 title: "Compassion Care CRM",
-                                challenge: "UI yang terlalu kompleks membuat agen CS stres dan sering salah input.",
-                                solution: "Redesain alur kerja berbasis psikologi warna dan shortcut keyboard.",
+                                challenge: "System yang belum paperless membuat CS stres dan sering salah input.",
+                                solution: "Redesain alur kerja berbasis CRM yang terintegrasi.",
                                 impact: "Human error turun 60%, produktivitas agen naik drastis.",
                                 tags: ["React", "Tailwind", "Node.js"]
                             }
@@ -660,34 +782,258 @@ const App = () => {
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16 relative z-30">
-                            <a href="#" className={`p-6 rounded-2xl border flex flex-col items-center gap-3 transition-all hover:shadow-2xl ${theme.card}`}>
+                            <button
+                                onClick={() => navigateToChat()}
+                                className={`p-6 rounded-2xl border flex flex-col items-center gap-3 transition-all hover:shadow-2xl hover:scale-105 cursor-pointer ${theme.card}`}
+                            >
                                 <MessageSquare className={theme.accent} />
                                 <span className="font-bold">Start a Conversation</span>
                                 <span className="text-xs opacity-50">Gaya Chat Interaktif</span>
-                            </a>
-                            <a href="#" className={`p-6 rounded-2xl border flex flex-col items-center gap-3 transition-all hover:shadow-2xl ${theme.card}`}>
+                            </button>
+                            <a href="https://github.com/Barodillah" target="_blank" className={`p-6 rounded-2xl border flex flex-col items-center gap-3 transition-all hover:shadow-2xl ${theme.card}`}>
                                 <Github className={theme.accent} />
                                 <span className="font-bold">Review My Logic</span>
                                 <span className="text-xs opacity-50">Eksplorasi Repo GitHub</span>
                             </a>
-                            <a href="#" className={`p-6 rounded-2xl border flex flex-col items-center gap-3 transition-all hover:shadow-2xl ${theme.card}`}>
+                            <button
+                                onClick={openCallModal}
+                                className={`p-6 rounded-2xl border flex flex-col items-center gap-3 transition-all hover:shadow-2xl hover:scale-105 cursor-pointer ${theme.card}`}
+                            >
                                 <Calendar className={theme.accent} />
                                 <span className="font-bold">Request Strategy Call</span>
-                                <span className="text-xs opacity-50">Koneksi Via Calendly</span>
-                            </a>
+                                <span className="text-xs opacity-50">Jadwalkan Diskusi Strategi</span>
+                            </button>
                         </div>
 
                         <div className="border-t border-slate-500/10 pt-12 flex flex-col md:flex-row justify-between items-center gap-6 opacity-50 text-sm">
                             <p>© {new Date().getFullYear()} Barod Yoedhistira. Logic-Empathy Framework v2.5</p>
                             <div className="flex gap-8">
-                                <a href="#" className="hover:text-cyan-400 transition-colors">LinkedIn</a>
-                                <a href="#" className="hover:text-cyan-400 transition-colors">Twitter</a>
-                                <a href="#" className="hover:text-cyan-400 transition-colors">Email</a>
+                                <a href="https://www.linkedin.com/in/barod-abdillah-284509169/" target="_blank" className="hover:text-cyan-400 transition-colors">LinkedIn</a>
+                                <a href="https://x.com/barodillah" target="_blank" className="hover:text-cyan-400 transition-colors">Twitter</a>
+                                <a href="mailto:gmail@cuma.click" target="_blank" className="hover:text-cyan-400 transition-colors">Email</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </footer>
+
+            {/* --- Strategy Call Modal --- */}
+            {showCallModal && (
+                <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && closeCallModal()}>
+                    <div className={`modal-container relative w-full max-w-md rounded-3xl border overflow-hidden ${isLogic ? 'bg-slate-900 border-slate-700' : 'bg-white border-stone-200'}`}>
+
+                        {/* Progress Bar */}
+                        <div className={`h-1 ${isLogic ? 'bg-slate-800' : 'bg-stone-100'}`}>
+                            <div
+                                className={`progress-bar h-full ${isLogic ? 'bg-cyan-500' : 'bg-rose-500'}`}
+                                style={{ width: `${(callStep / 3) * 100}%` }}
+                            />
+                        </div>
+
+                        {/* Close Button */}
+                        <button
+                            onClick={closeCallModal}
+                            className={`modal-close absolute top-4 right-4 p-2 rounded-full transition-all ${isLogic ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-stone-100 text-stone-400'}`}
+                        >
+                            <X size={20} />
+                        </button>
+
+                        {/* Modal Content */}
+                        <div className="p-8 pt-12">
+
+                            {/* Step 1: Time Selection */}
+                            {callStep === 1 && (
+                                <div className="step-enter">
+                                    <div className="text-center mb-8">
+                                        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 ${isLogic ? 'bg-cyan-500/10' : 'bg-rose-500/10'}`}>
+                                            <Clock className={`${isLogic ? 'text-cyan-400' : 'text-rose-500'}`} size={32} />
+                                        </div>
+                                        <h3 className={`text-2xl font-bold mb-2 ${isLogic ? 'text-white' : 'text-stone-800'}`}>
+                                            Kapan waktu santai Anda?
+                                        </h3>
+                                        <p className={`text-sm ${isLogic ? 'text-slate-400' : 'text-stone-500'}`}>
+                                            Pilih waktu yang nyaman untuk diskusi strategi
+                                        </p>
+                                    </div>
+
+                                    <div className="flex flex-row gap-2 sm:gap-3">
+                                        {timeSlots.map((slot) => (
+                                            <button
+                                                key={slot.id}
+                                                onClick={() => handleTimeSelect(slot.id)}
+                                                className={`flex-1 p-3 sm:p-4 rounded-2xl border-2 transition-all transform hover:scale-105 active:scale-95 flex flex-col items-center gap-1 sm:gap-2
+                                                    ${selectedTime === slot.id
+                                                        ? (isLogic ? 'border-cyan-500 bg-cyan-500/10 pill-selected' : 'border-rose-500 bg-rose-500/10 pill-selected')
+                                                        : (isLogic ? 'border-slate-700 hover:border-slate-600 bg-slate-800/50' : 'border-stone-200 hover:border-stone-300 bg-stone-50')
+                                                    }`}
+                                            >
+                                                {isLogic ? (
+                                                    <slot.IconComponent size={24} className={`sm:w-7 sm:h-7 ${selectedTime === slot.id ? 'text-cyan-400' : 'text-slate-400'}`} />
+                                                ) : (
+                                                    <span className="text-xl sm:text-2xl">{slot.emoji}</span>
+                                                )}
+                                                <span className={`font-bold text-sm sm:text-base ${isLogic ? 'text-white' : 'text-stone-800'}`}>{slot.label}</span>
+                                                <span className={`text-[10px] sm:text-xs ${isLogic ? 'text-slate-400' : 'text-stone-500'}`}>{slot.time}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Step 2: Phone Input */}
+                            {callStep === 2 && (
+                                <div className="step-enter">
+                                    <div className="text-center mb-8">
+                                        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 ${isLogic ? 'bg-cyan-500/10' : 'bg-rose-500/10'}`}>
+                                            <Phone className={`${isLogic ? 'text-cyan-400' : 'text-rose-500'}`} size={32} />
+                                        </div>
+                                        <h3 className={`text-2xl font-bold mb-2 ${isLogic ? 'text-white' : 'text-stone-800'}`}>
+                                            Ke nomor mana kami menghubungi?
+                                        </h3>
+                                        <p className={`text-sm ${isLogic ? 'text-slate-400' : 'text-stone-500'}`}>
+                                            Kami akan menghubungi via WhatsApp
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className={`flex items-center rounded-2xl border-2 overflow-hidden transition-all
+                                            ${isLogic
+                                                ? 'border-slate-700 focus-within:border-cyan-500 bg-slate-800'
+                                                : 'border-stone-200 focus-within:border-rose-500 bg-white'}`}
+                                        >
+                                            <span className={`px-4 py-4 font-bold ${isLogic ? 'text-cyan-400 bg-slate-800/50' : 'text-rose-500 bg-stone-50'}`}>
+                                                +62
+                                            </span>
+                                            <input
+                                                ref={phoneInputRef}
+                                                type="tel"
+                                                value={phoneNumber}
+                                                onChange={handlePhoneChange}
+                                                placeholder="812-3456-7890"
+                                                maxLength={14}
+                                                className={`flex-1 px-4 py-4 outline-none border-none focus:ring-0 focus:outline-none text-lg font-medium
+                                                    ${isLogic
+                                                        ? 'bg-slate-800 text-white placeholder:text-slate-500'
+                                                        : 'bg-white text-stone-800 placeholder:text-stone-400'}`}
+                                            />
+                                        </div>
+
+                                        {/* Selected Time Display */}
+                                        <div className={`flex items-center justify-center gap-2 py-2 rounded-xl ${isLogic ? 'bg-slate-800/50' : 'bg-stone-50'}`}>
+                                            {isLogic ? (
+                                                React.createElement(timeSlots.find(t => t.id === selectedTime)?.IconComponent || 'span', {
+                                                    size: 18,
+                                                    className: 'text-cyan-400'
+                                                })
+                                            ) : (
+                                                <span className="text-lg">{timeSlots.find(t => t.id === selectedTime)?.emoji}</span>
+                                            )}
+                                            <span className={`text-sm ${isLogic ? 'text-slate-400' : 'text-stone-500'}`}>
+                                                {timeSlots.find(t => t.id === selectedTime)?.label} ({timeSlots.find(t => t.id === selectedTime)?.time})
+                                            </span>
+                                            <button
+                                                onClick={() => setCallStep(1)}
+                                                className={`text-xs underline ml-2 ${isLogic ? 'text-cyan-400' : 'text-rose-500'}`}
+                                            >
+                                                Ubah
+                                            </button>
+                                        </div>
+
+                                        <button
+                                            onClick={handleCallSubmit}
+                                            disabled={!isPhoneValid || isSubmitting}
+                                            className={`w-full py-4 rounded-2xl font-bold text-lg transition-all transform flex items-center justify-center gap-3
+                                                ${isPhoneValid && !isSubmitting
+                                                    ? (isLogic
+                                                        ? 'bg-cyan-500 text-slate-950 hover:scale-[1.02] active:scale-95 glow-pulse-cyan'
+                                                        : 'bg-rose-500 text-white hover:scale-[1.02] active:scale-95 glow-pulse-rose')
+                                                    : (isLogic
+                                                        ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                                                        : 'bg-stone-200 text-stone-400 cursor-not-allowed')
+                                                }`}
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                                    <span>Memproses...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span>Jadwalkan Sekarang!</span>
+                                                    {isLogic ? (
+                                                        <Rocket size={20} className="inline-block" />
+                                                    ) : (
+                                                        <span className="text-xl">🚀</span>
+                                                    )}
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Step 3: Success */}
+                            {callStep === 3 && (
+                                <div className="step-enter text-center py-8">
+                                    {/* Confetti Particles */}
+                                    {showConfetti && (
+                                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                                            {[...Array(12)].map((_, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="confetti-particle"
+                                                    style={{
+                                                        left: `${10 + (i * 7)}%`,
+                                                        top: '40%',
+                                                        backgroundColor: isLogic
+                                                            ? ['#22d3ee', '#06b6d4', '#0891b2'][i % 3]
+                                                            : ['#f43f5e', '#e11d48', '#fb7185'][i % 3],
+                                                        animationDelay: `${i * 0.08}s`
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className={`success-icon inline-flex items-center justify-center w-20 h-20 rounded-full mb-6 ${isLogic ? 'bg-cyan-500' : 'bg-rose-500'}`}>
+                                        <Check size={40} className="text-white" />
+                                    </div>
+
+                                    <h3 className={`text-2xl font-bold mb-2 flex items-center justify-center gap-2 ${isLogic ? 'text-white' : 'text-stone-800'}`}>
+                                        Permintaan Terkirim!
+                                        {isLogic ? (
+                                            <Sparkles size={24} className="text-cyan-400" />
+                                        ) : (
+                                            <span>🎉</span>
+                                        )}
+                                    </h3>
+                                    <p className={`text-sm mb-6 ${isLogic ? 'text-slate-400' : 'text-stone-500'}`}>
+                                        Tim kami akan menghubungi Anda di waktu {timeSlots.find(t => t.id === selectedTime)?.label.toLowerCase()}
+                                    </p>
+
+                                    <div className={`p-4 rounded-2xl ${isLogic ? 'bg-slate-800' : 'bg-stone-50'}`}>
+                                        <div className="flex flex-row items-center justify-center gap-4">
+                                            <div className="text-center sm:text-left">
+                                                <p className={`text-xs uppercase tracking-wider ${isLogic ? 'text-slate-500' : 'text-stone-400'}`}>Waktu</p>
+                                                <p className={`font-bold text-sm sm:text-base ${isLogic ? 'text-white' : 'text-stone-800'}`}>
+                                                    {timeSlots.find(t => t.id === selectedTime)?.time}
+                                                </p>
+                                            </div>
+                                            <div className={`w-px h-10 ${isLogic ? 'bg-slate-700' : 'bg-stone-200'}`} />
+                                            <div className="text-center sm:text-left">
+                                                <p className={`text-xs uppercase tracking-wider ${isLogic ? 'text-slate-500' : 'text-stone-400'}`}>WhatsApp</p>
+                                                <p className={`font-bold text-sm sm:text-base ${isLogic ? 'text-white' : 'text-stone-800'}`}>
+                                                    +62 {phoneNumber}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
