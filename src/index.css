@@ -1,0 +1,267 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,700;0,800;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    transition: background-color 0.7s ease;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar - will be overriden by theme in component */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(34, 211, 238, 0.27);
+    border-radius: 10px;
+}
+
+/* Theme-aware scrollbar via data attribute */
+[data-theme="satisfaction"] ::-webkit-scrollbar-thumb {
+    background: rgba(244, 63, 94, 0.27);
+}
+
+/* Smooth scroll for the whole page */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Selection colors */
+::selection {
+    background: rgba(34, 211, 238, 0.3);
+    color: inherit;
+}
+
+[data-theme="satisfaction"] ::selection {
+    background: rgba(244, 63, 94, 0.3);
+}
+
+/* Focus outlines for accessibility */
+:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+/* Custom Animations */
+@keyframes cursor-blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+@keyframes float-balloon {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(-2deg);
+    }
+
+    50% {
+        transform: translateY(-12px) rotate(2deg);
+    }
+}
+
+@keyframes inflate-balloon {
+    0% {
+        transform: scale(0) translate(0, 0);
+        opacity: 0;
+    }
+
+    60% {
+        transform: scale(1.1) translate(0, -90px);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1) translate(0, -90px);
+        opacity: 1;
+    }
+}
+
+.animate-cursor-blink {
+    animation: cursor-blink 1s step-end infinite;
+}
+
+.animate-float-balloon {
+    animation: float-balloon 3.5s ease-in-out infinite;
+}
+
+.animate-inflate-balloon {
+    animation: inflate-balloon 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Idle Balloon Animation - gentle bobbing when detached */
+@keyframes idle-balloon {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(-3deg);
+    }
+
+    25% {
+        transform: translateY(-8px) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-3px) rotate(3deg);
+    }
+
+    75% {
+        transform: translateY(-10px) rotate(0deg);
+    }
+}
+
+.animate-idle-balloon {
+    animation: idle-balloon 3s ease-in-out infinite;
+}
+
+/* Heartbeat Emoji Animation - pulsing like a heartbeat */
+@keyframes heartbeat-emoji {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    15% {
+        transform: scale(1.15);
+    }
+
+    30% {
+        transform: scale(1);
+    }
+
+    45% {
+        transform: scale(1.2);
+    }
+
+    60% {
+        transform: scale(1);
+    }
+}
+
+/* Spin Emoji Animation for Love Emoji */
+@keyframes spin-emoji {
+
+    0%,
+    100% {
+        transform: scale(1.25) rotateY(0deg);
+    }
+
+    25% {
+        transform: scale(1.3) rotateY(90deg);
+    }
+
+    50% {
+        transform: scale(1.25) rotateY(180deg);
+    }
+
+    75% {
+        transform: scale(1.3) rotateY(270deg);
+    }
+}
+
+/* Binary Glow Animation */
+@keyframes binary-glow {
+
+    0%,
+    100% {
+        text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+    }
+
+    50% {
+        text-shadow: 0 0 30px rgba(34, 211, 238, 0.9), 0 0 60px rgba(34, 211, 238, 0.5);
+    }
+}
+
+.animate-binary-glow {
+    animation: binary-glow 0.5s ease-in-out infinite;
+}
+
+/* Heartbeat Text Animation for Satisfaction Mode */
+@keyframes heartbeat-text {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    15% {
+        transform: scale(1.05);
+    }
+
+    30% {
+        transform: scale(1);
+    }
+
+    45% {
+        transform: scale(1.08);
+    }
+
+    60% {
+        transform: scale(1);
+    }
+}
+
+.animate-heartbeat-text {
+    animation: heartbeat-text 1.5s ease-in-out infinite;
+}
+
+/* Float Away Animation for Released Balloon */
+@keyframes float-away {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.7;
+    }
+
+    25% {
+        transform: translateY(-50px) rotate(-5deg);
+    }
+
+    50% {
+        transform: translateY(-100px) rotate(5deg);
+    }
+
+    75% {
+        transform: translateY(-150px) rotate(-3deg);
+    }
+
+    100% {
+        transform: translateY(-250px) rotate(0deg);
+        opacity: 0;
+    }
+}
+
+.animate-float-away {
+    animation: float-away 3s ease-out forwards;
+}
+
+/* Utility for backdrop blur fallback */
+@supports not (backdrop-filter: blur(12px)) {
+    .backdrop-blur-md {
+        background: rgba(0, 0, 0, 0.8);
+    }
+}
