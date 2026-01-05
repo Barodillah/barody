@@ -112,11 +112,15 @@ const App = () => {
 
     const formatPhoneNumber = (value) => {
         // Remove non-digits
-        const digits = value.replace(/\D/g, '');
-        // Format as 0812-3456-7890
-        if (digits.length <= 4) return digits;
-        if (digits.length <= 8) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
-        return `${digits.slice(0, 4)}-${digits.slice(4, 8)}-${digits.slice(8, 12)}`;
+        let digits = value.replace(/\D/g, '');
+        // Remove leading 0 since we already have +62 prefix
+        if (digits.startsWith('0')) {
+            digits = digits.slice(1);
+        }
+        // Format as 812-3456-7890
+        if (digits.length <= 3) return digits;
+        if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+        return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7, 11)}`;
     };
 
     const handlePhoneChange = (e) => {
@@ -124,7 +128,7 @@ const App = () => {
         setPhoneNumber(formatted);
     };
 
-    const isPhoneValid = phoneNumber.replace(/\D/g, '').length >= 10;
+    const isPhoneValid = phoneNumber.replace(/\D/g, '').length >= 9;
 
     const handleCallSubmit = () => {
         if (!isPhoneValid) return;
@@ -872,8 +876,8 @@ const App = () => {
                                                 ) : (
                                                     <span className="text-xl sm:text-2xl">{slot.emoji}</span>
                                                 )}
-                                                <span className={`font-bold text-sm sm:text-base ${isLogic ? 'text-white' : 'text-stone-800'}`}>{slot.label}</span>
-                                                <span className={`text-[10px] sm:text-xs ${isLogic ? 'text-slate-400' : 'text-stone-500'}`}>{slot.time}</span>
+                                                <span className={`font-bold text-sm sm:text-base whitespace-nowrap ${isLogic ? 'text-white' : 'text-stone-800'}`}>{slot.label}</span>
+                                                <span className={`text-[10px] sm:text-xs whitespace-nowrap ${isLogic ? 'text-slate-400' : 'text-stone-500'}`}>{slot.time}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -1014,15 +1018,15 @@ const App = () => {
                                     <div className={`p-4 rounded-2xl ${isLogic ? 'bg-slate-800' : 'bg-stone-50'}`}>
                                         <div className="flex flex-row items-center justify-center gap-4">
                                             <div className="text-center sm:text-left">
-                                                <p className={`text-xs uppercase tracking-wider ${isLogic ? 'text-slate-500' : 'text-stone-400'}`}>Waktu</p>
-                                                <p className={`font-bold text-sm sm:text-base ${isLogic ? 'text-white' : 'text-stone-800'}`}>
+                                                <p className={`text-xs uppercase tracking-wider whitespace-nowrap ${isLogic ? 'text-slate-500' : 'text-stone-400'}`}>Waktu</p>
+                                                <p className={`font-bold text-sm sm:text-base whitespace-nowrap ${isLogic ? 'text-white' : 'text-stone-800'}`}>
                                                     {timeSlots.find(t => t.id === selectedTime)?.time}
                                                 </p>
                                             </div>
                                             <div className={`w-px h-10 ${isLogic ? 'bg-slate-700' : 'bg-stone-200'}`} />
                                             <div className="text-center sm:text-left">
-                                                <p className={`text-xs uppercase tracking-wider ${isLogic ? 'text-slate-500' : 'text-stone-400'}`}>WhatsApp</p>
-                                                <p className={`font-bold text-sm sm:text-base ${isLogic ? 'text-white' : 'text-stone-800'}`}>
+                                                <p className={`text-xs uppercase tracking-wider whitespace-nowrap ${isLogic ? 'text-slate-500' : 'text-stone-400'}`}>WhatsApp</p>
+                                                <p className={`font-bold text-sm sm:text-base whitespace-nowrap ${isLogic ? 'text-white' : 'text-stone-800'}`}>
                                                     +62 {phoneNumber}
                                                 </p>
                                             </div>
