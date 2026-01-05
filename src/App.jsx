@@ -484,7 +484,7 @@ const App = () => {
                             <div
                                 className={`aspect-square rounded-full border-2 border-dashed flex items-center justify-center p-12 transition-all duration-700 cursor-pointer
                                     ${isLogic ? 'border-cyan-500/20' : 'border-rose-500/20'}
-                                    ${coreHovered ? (isLogic ? 'rotate-[270deg] scale-110' : 'scale-110') : (isLogic ? 'rotate-90' : 'rotate-0')}
+                                    ${coreHovered ? (isLogic ? 'rotate-[360deg] scale-110' : 'scale-110') : (isLogic ? 'rotate-90' : 'rotate-0')}
                                 `}
                                 onMouseEnter={() => {
                                     setCoreHovered(true);
