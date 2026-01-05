@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Code2, 
   Heart, 
@@ -8,22 +8,194 @@ import {
   MessageSquare, 
   ChevronRight, 
   Github, 
-  Calendar,
-  Zap,
-  ShieldCheck,
-  Search,
-  Layers,
-  Repeat,
-  ArrowRight
+  Calendar, 
+  Zap, 
+  Search, 
+  Layers, 
+  Repeat 
 } from 'lucide-react';
 
 const App = () => {
   // Mode state: 'logic' (Tech) or 'satisfaction' (Human/CS)
   const [mode, setMode] = useState('logic');
   const [scrolled, setScrolled] = useState(false);
+  const [timelineProgress, setTimelineProgress] = useState(0);
+  
+  // Typewriter state for "ision."
+  const [typewriterText, setTypewriterText] = useState("");
+  const fullText = "ision.";
+  
+  // Balloon Physics & Animation State
+  const [balloonPos, setBalloonPos] = useState({ x: 0, y: -80 });
+  const [showBalloon, setShowBalloon] = useState(false);
+  const dotRef = useRef(null);
+  
+  const timelineRef = useRef(null);
+  const canvasRef = useRef(null);
+  const mouseRef = useRef({ x: null, y: null, radius: 150 });
+
+  // --- Background Particles (Anti-Gravity) Logic ---
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let particlesArray = [];
+    let animationFrameId;
+
+    const setCanvasSize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    window.addEventListener('resize', setCanvasSize);
+    setCanvasSize();
+
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.baseX = this.x;
+        this.baseY = this.y;
+        this.size = Math.random() * 2 + 1;
+        this.color = color;
+        this.density = (Math.random() * 30) + 1;
+      }
+
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      update() {
+        let dx = mouseRef.current.x - this.x;
+        let dy = mouseRef.current.y - this.y;
+        let distance = Math.sqrt(dx * dx + dy * dy);
+        let forceDirectionX = dx / distance;
+        let forceDirectionY = dy / distance;
+        let maxDistance = mouseRef.current.radius;
+        let force = (maxDistance - distance) / maxDistance;
+        let directionX = forceDirectionX * force * this.density;
+        let directionY = forceDirectionY * force * this.density;
+
+        if (distance < mouseRef.current.radius) {
+          this.x -= directionX;
+          this.y -= directionY;
+        } else {
+          if (this.x !== this.baseX) {
+            let dx = this.x - this.baseX;
+            this.x -= dx / 10;
+          }
+          if (this.y !== this.baseY) {
+            let dy = this.y - this.baseY;
+            this.y -= dy / 10;
+          }
+        }
+      }
+    }
+
+    const init = () => {
+      particlesArray = [];
+      const numberOfParticles = (canvas.width * canvas.height) / 9000;
+      const color = mode === 'logic' ? 'rgba(34, 211, 238, 0.4)' : 'rgba(244, 63, 94, 0.4)';
+      
+      for (let i = 0; i < numberOfParticles; i++) {
+        let x = Math.random() * canvas.width;
+        let y = Math.random() * canvas.height;
+        particlesArray.push(new Particle(x, y, color));
+      }
+    };
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < particlesArray.length; i++) {
+        particlesArray[i].draw();
+        particlesArray[i].update();
+      }
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    const handleMouseMove = (e) => {
+      mouseRef.current.x = e.x;
+      mouseRef.current.y = e.y;
+      
+      // Balloon Physics Calculation
+      if (mode === 'satisfaction' && dotRef.current) {
+        const rect = dotRef.current.getBoundingClientRect();
+        const dotCenterX = rect.left + rect.width / 2;
+        const dotCenterY = rect.top + rect.height / 2;
+        
+        let targetX = e.clientX - dotCenterX;
+        let targetY = e.clientY - dotCenterY;
+        
+        // Constraint: Maximum String Length
+        const maxLen = 130;
+        const dist = Math.sqrt(targetX * targetX + targetY * targetY);
+        
+        if (dist > maxLen) {
+          targetX = (targetX / dist) * maxLen;
+          targetY = (targetY / dist) * maxLen;
+        }
+
+        // Add float up bias
+        targetY -= 30;
+
+        setBalloonPos({ x: targetX, y: targetY });
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    init();
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', setCanvasSize);
+      window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [mode]);
+
+  // Handle Logic Typewriter and Satisfaction Balloon Delay
+  useEffect(() => {
+    if (mode === 'logic') {
+      setTypewriterText("");
+      setShowBalloon(false); // Reset balloon
+      let currentIdx = 0;
+      
+      const type = () => {
+        if (currentIdx < fullText.length) {
+          setTypewriterText(fullText.substring(0, currentIdx + 1));
+          currentIdx++;
+          setTimeout(type, 150);
+        }
+      };
+
+      const timeoutId = setTimeout(type, 800);
+      return () => clearTimeout(timeoutId);
+    } else {
+        // Satisfaction Mode: Show Balloon with delay
+        setBalloonPos({ x: 0, y: -90 });
+        const balloonTimeout = setTimeout(() => {
+          setShowBalloon(true);
+        }, 800); // 800ms delay before balloon starts inflating
+        return () => clearTimeout(balloonTimeout);
+    }
+  }, [mode]);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+
+      if (timelineRef.current) {
+        const rect = timelineRef.current.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        const progress = Math.max(0, Math.min(1, (windowHeight - rect.top) / (rect.height + windowHeight)));
+        setTimelineProgress(progress);
+      }
+    };
+    
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -35,14 +207,21 @@ const App = () => {
     bg: isLogic ? 'bg-slate-950' : 'bg-stone-50',
     text: isLogic ? 'text-slate-200' : 'text-stone-800',
     accent: isLogic ? 'text-cyan-400' : 'text-rose-500',
+    accentGradient: isLogic ? 'via-cyan-400' : 'via-rose-500',
     border: isLogic ? 'border-slate-800' : 'border-stone-200',
     card: isLogic ? 'bg-slate-900/50 backdrop-blur border-slate-800' : 'bg-white shadow-xl border-stone-100',
     font: isLogic ? 'font-mono' : 'font-sans'
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-700 ${theme.bg} ${theme.text} ${theme.font}`}>
+    <div className={`min-h-screen transition-colors duration-700 ${theme.bg} ${theme.text} ${theme.font} relative`}>
       
+      {/* --- Background Canvas for Anti-Gravity Particles --- */}
+      <canvas 
+        ref={canvasRef} 
+        className="fixed inset-0 z-0 pointer-events-none opacity-60"
+      />
+
       {/* --- Navigation & Toggle --- */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'py-4 backdrop-blur-md border-b ' + theme.border : 'py-6'}`}>
         <div className="container mx-auto px-6 flex justify-between items-center">
@@ -53,7 +232,7 @@ const App = () => {
             <span className="font-bold text-xl tracking-tighter">BAROD.Y</span>
           </div>
 
-          <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-full p-1 border border-slate-500/20">
+          <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-full p-1 border border-slate-500/20 relative z-50">
             <button 
               onClick={() => setMode('logic')}
               className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${isLogic ? 'bg-cyan-500 text-white shadow-lg' : 'text-slate-400 opacity-60'}`}
@@ -71,8 +250,7 @@ const App = () => {
       </nav>
 
       {/* --- Hero Section --- */}
-      <header className="relative pt-32 pb-20 overflow-hidden">
-        {/* Abstract Background Shapes */}
+      <header className="relative pt-32 pb-20 overflow-hidden z-10">
         <div className={`absolute top-0 right-0 w-1/2 h-full opacity-10 blur-3xl rounded-full transition-colors duration-1000 ${isLogic ? 'bg-cyan-500' : 'bg-rose-500 animate-pulse'}`}></div>
         
         <div className="container mx-auto px-6 relative z-10">
@@ -83,9 +261,63 @@ const App = () => {
             
             <h1 className={`text-5xl md:text-8xl font-black mb-8 leading-[1.1] transition-all duration-500 ${isLogic ? 'tracking-tight' : 'tracking-normal'}`}>
               {isLogic ? (
-                <>Building <span className="text-cyan-400">Logic</span>,<br />Ensuring Precision.</>
+                <div className="flex flex-col">
+                  <span>Building <span className="text-cyan-400">Logic</span>,</span>
+                  <div className="flex flex-col mt-4">
+                    <span>Ensuring</span>
+                    <div className="flex items-center h-[1.1em]">
+                      <span>Prec</span>
+                      <span className="text-slate-200">{typewriterText}</span>
+                      <span className="w-1.5 h-[0.9em] bg-cyan-400 animate-cursor-blink ml-1.5 inline-block shadow-[0_0_10px_#22d3ee]"></span>
+                    </div>
+                  </div>
+                </div>
               ) : (
-                <>Membangun Solusi, <br /><span className="text-rose-500 italic">Menciptakan Senyuman.</span></>
+                <div className="flex flex-col">
+                  <span>Membangun Solusi,</span>
+                  <span className="text-rose-500 italic mt-2">Menciptakan</span>
+                  <div className="mt-2 flex items-center relative">
+                    <span className="text-rose-500 italic">Senyuman</span>
+                    
+                    {/* --- Interactive Dot & Magnet Balloon --- */}
+                    <div className="relative inline-flex items-center ml-0.5">
+                      <span ref={dotRef} className="text-rose-500 font-black">.</span>
+                      
+                      {/* Balloon Pivot (locked to dot) */}
+                      {showBalloon && (
+                        <div 
+                          className="absolute pointer-events-none transition-transform duration-300 ease-out animate-inflate-balloon"
+                          style={{ 
+                            transform: `translate(${balloonPos.x}px, ${balloonPos.y}px)`,
+                            left: '50%',
+                            top: '50%'
+                          }}
+                        >
+                          <div className="relative flex flex-col items-center">
+                            {/* Dynamic String SVG linking Dot to Balloon */}
+                            <svg 
+                              className="absolute top-[100%] left-1/2 -translate-x-1/2 overflow-visible"
+                              width="100" height="200"
+                            >
+                              <path 
+                                  d={`M 50 0 Q ${50 - balloonPos.x/3} ${-balloonPos.y/2} ${50 - balloonPos.x} ${-balloonPos.y}`}
+                                  fill="none" 
+                                  stroke="rgba(244, 63, 94, 0.4)" 
+                                  strokeWidth="1.5"
+                                  strokeDasharray="4 2"
+                              />
+                            </svg>
+                            
+                            {/* The Floating Emoji Balloon */}
+                            <div className="text-6xl select-none animate-float-balloon drop-shadow-2xl">
+                              😊
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               )}
             </h1>
 
@@ -96,12 +328,12 @@ const App = () => {
               }
             </p>
 
-            <div className="flex flex-wrap gap-4">
-              <button className={`px-8 py-4 rounded-xl flex items-center gap-3 font-bold transition-all transform hover:scale-105 ${isLogic ? 'bg-cyan-500 text-slate-950' : 'bg-rose-500 text-white'}`}>
+            <div className="flex flex-wrap gap-4 relative z-20">
+              <button className={`px-8 py-4 rounded-xl flex items-center gap-3 font-bold transition-all transform hover:scale-105 active:scale-95 ${isLogic ? 'bg-cyan-500 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,0.3)]' : 'bg-rose-500 text-white shadow-[0_0_20px_rgba(244,63,94,0.3)]'}`}>
                 {isLogic ? <Github size={20} /> : <MessageSquare size={20} />}
                 {isLogic ? "Review My Logic" : "Start a Conversation"}
               </button>
-              <button className={`px-8 py-4 rounded-xl border font-bold transition-all flex items-center gap-2 hover:bg-slate-500/10 ${theme.border}`}>
+              <button className={`px-8 py-4 rounded-xl border font-bold transition-all flex items-center gap-2 hover:bg-white/10 active:scale-95 ${theme.border}`}>
                 Request Strategy Call <ChevronRight size={18} />
               </button>
             </div>
@@ -110,13 +342,21 @@ const App = () => {
       </header>
 
       {/* --- Dual Experience (Timeline) --- */}
-      <section className="py-24 border-y border-slate-500/10 relative">
+      <section ref={timelineRef} className="py-24 border-y border-slate-500/10 relative overflow-hidden z-10">
         <div className="container mx-auto px-6">
           <h2 className="text-3xl font-bold mb-16 text-center">Jejak Karir & <span className={theme.accent}>Dualitas Keahlian</span></h2>
           
           <div className="relative max-w-5xl mx-auto">
             {/* Center Line */}
             <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-500/20 hidden md:block"></div>
+            
+            {/* Scroll Particle (Follows for both modes) */}
+            <div 
+              className={`absolute left-1/2 -ml-[3px] w-[7px] h-20 bg-gradient-to-b from-transparent ${theme.accentGradient} to-transparent z-0 blur-[2px] hidden md:block`}
+              style={{ top: `${timelineProgress * 100}%`, transition: 'top 0.15s ease-out' }}
+            >
+              <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full transition-colors duration-500 ${isLogic ? 'bg-cyan-400 shadow-[0_0_15px_#22d3ee]' : 'bg-rose-500 shadow-[0_0_15px_#f43f5e]'}`}></div>
+            </div>
 
             {/* Timeline Items */}
             {[
@@ -148,14 +388,13 @@ const App = () => {
                 color: 'text-amber-400'
               }
             ].map((item, idx) => (
-              <div key={idx} className={`relative mb-16 flex flex-col items-center ${item.side === 'left' ? 'md:flex-row' : item.side === 'right' ? 'md:flex-row-reverse' : ''}`}>
+              <div key={idx} className={`relative mb-16 flex flex-col items-center z-10 ${item.side === 'left' ? 'md:flex-row' : item.side === 'right' ? 'md:flex-row-reverse' : ''}`}>
                 <div className={`w-full md:w-1/2 p-4 ${item.side === 'left' ? 'md:text-right md:pr-12' : item.side === 'right' ? 'md:text-left md:pl-12' : 'hidden'}`}>
                   <span className={`text-sm font-bold uppercase tracking-widest ${item.color}`}>{item.year}</span>
                   <h3 className="text-2xl font-bold mt-2">{item.title}</h3>
                   <p className="mt-4 opacity-70">{item.desc}</p>
                 </div>
 
-                {/* Center Node */}
                 <div className={`z-10 w-12 h-12 rounded-full border-4 ${theme.bg} flex items-center justify-center shadow-xl ${item.color} ${item.side === 'center' ? 'md:mx-auto scale-150 mb-8 bg-amber-400/10 border-amber-400' : 'bg-slate-800 border-slate-700'}`}>
                   {item.icon}
                 </div>
@@ -176,7 +415,7 @@ const App = () => {
       </section>
 
       {/* --- Satisfaction-Driven Development --- */}
-      <section className="py-24 overflow-hidden">
+      <section className="py-24 overflow-hidden z-10">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row gap-16 items-center">
             <div className="md:w-1/2">
@@ -227,7 +466,7 @@ const App = () => {
       </section>
 
       {/* --- Selected Works --- */}
-      <section className={`py-24 transition-colors duration-500 ${isLogic ? 'bg-slate-900/30' : 'bg-stone-100'}`}>
+      <section className={`py-24 transition-colors duration-500 z-10 relative ${isLogic ? 'bg-slate-900/30' : 'bg-stone-100'}`}>
         <div className="container mx-auto px-6">
           <div className="flex justify-between items-end mb-16">
             <div>
@@ -295,7 +534,7 @@ const App = () => {
       </section>
 
       {/* --- Footer / CTA --- */}
-      <footer className="py-24">
+      <footer className="py-24 z-10 relative">
         <div className="container mx-auto px-6 text-center">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-4xl md:text-6xl font-black mb-8 leading-tight">
@@ -308,7 +547,7 @@ const App = () => {
               "Bug adalah masalah teknis, tapi ketidakpuasan adalah kegagalan sistem. Saya menangani keduanya."
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16 relative z-30">
               <a href="#" className={`p-6 rounded-2xl border flex flex-col items-center gap-3 transition-all hover:shadow-2xl ${theme.card}`}>
                 <MessageSquare className={theme.accent} />
                 <span className="font-bold">Start a Conversation</span>
@@ -345,10 +584,39 @@ const App = () => {
         body {
           margin: 0;
           transition: background-color 0.7s ease;
+          overflow-x: hidden;
         }
 
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .font-sans { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        @keyframes cursor-blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+        
+        @keyframes float-balloon {
+          0%, 100% { transform: translateY(0) rotate(-2deg); }
+          50% { transform: translateY(-12px) rotate(2deg); }
+        }
+
+        @keyframes inflate-balloon {
+          0% { transform: scale(0) translate(0, 0); opacity: 0; }
+          60% { transform: scale(1.1) translate(0, -90px); opacity: 1; }
+          100% { transform: scale(1) translate(0, -90px); opacity: 1; }
+        }
+
+        .animate-cursor-blink {
+          animation: cursor-blink 1s step-end infinite;
+        }
+
+        .animate-float-balloon {
+          animation: float-balloon 3.5s ease-in-out infinite;
+        }
+
+        .animate-inflate-balloon {
+          animation: inflate-balloon 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
 
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
