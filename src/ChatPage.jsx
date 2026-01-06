@@ -338,7 +338,7 @@ GAYA BAHASA (SATISFACTION MODE):
                 setIsTyping(false);
                 setIsTyping(false);
                 setSuggestedQuestions(isLogic
-                    ? ["Jelaskan Tech Stack", "Apa itu Satisfaction-Driven Dev?"]
+                    ? ["Siapa Barod?", "Apa itu Satisfaction-Driven Dev?"]
                     : ["Layanan apa saja yang ada?", "Apa filosofi 'Ease of Use'?"]
                 );
             }, 1000);
