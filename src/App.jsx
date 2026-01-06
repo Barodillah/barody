@@ -530,8 +530,11 @@ const App = () => {
                         <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-500/20"></div>
 
                         {/* Dynamic Year Background */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none select-none overflow-hidden flex items-center justify-center w-full h-full">
-                            <span className={`text-[15rem] md:text-[25rem] font-bold opacity-5 leading-none transition-all duration-300 ${isLogic ? 'text-cyan-500' : 'text-rose-500'}`}>
+                        <div
+                            className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none select-none flex items-center justify-center w-full"
+                            style={{ top: `${timelineProgress * 100}%`, transition: 'top 0.15s ease-out' }}
+                        >
+                            <span className={`text-[6rem] sm:text-[10rem] md:text-[20rem] font-bold opacity-10 leading-none transition-all duration-300 whitespace-nowrap ${isLogic ? 'text-cyan-500' : 'text-rose-500'}`}>
                                 {currentYear}
                             </span>
                         </div>
