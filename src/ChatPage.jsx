@@ -499,40 +499,41 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
                                     <Send size={20} />
                                 </button>
                             </div>
-                            ) : (
-                            <div className={`text-center py-4 rounded-xl border ${theme.card} ${theme.border}`}>
-                                <CheckCircle className={`mx-auto mb-2 ${theme.accent}`} size={32} />
-                                <p className="font-bold">
-                                    {isLogic ? '// Session Complete' : 'Percakapan Selesai! 🎉'}
-                                </p>
-                                <p className="text-sm opacity-60 mt-1">
-                                    {isLogic ? 'Data telah tercatat dalam sistem.' : 'Terima kasih sudah berbagi!'}
-                                </p>
-                                <button
-                                    onClick={() => navigate('/')}
-                                    className={`mt-4 px-6 py-2 rounded-lg font-bold transition-all hover:scale-105 ${theme.accentBg} text-white`}
-                                >
-                                    {isLogic ? 'Return to Main' : 'Kembali ke Beranda'}
-                                </button>
-                            </div>
+                        </div>
+                    ) : (
+                        <div className={`text-center py-4 rounded-xl border ${theme.card} ${theme.border}`}>
+                            <CheckCircle className={`mx-auto mb-2 ${theme.accent}`} size={32} />
+                            <p className="font-bold">
+                                {isLogic ? '// Session Complete' : 'Percakapan Selesai! 🎉'}
+                            </p>
+                            <p className="text-sm opacity-60 mt-1">
+                                {isLogic ? 'Data telah tercatat dalam sistem.' : 'Terima kasih sudah berbagi!'}
+                            </p>
+                            <button
+                                onClick={() => navigate('/')}
+                                className={`mt-4 px-6 py-2 rounded-lg font-bold transition-all hover:scale-105 ${theme.accentBg} text-white`}
+                            >
+                                {isLogic ? 'Return to Main' : 'Kembali ke Beranda'}
+                            </button>
+                        </div>
                     )}
 
-                            {/* Mobile Progress */}
-                            <div className="sm:hidden flex items-center justify-center gap-2 mt-3">
-                                <span className={`text-xs opacity-60`}>Progress:</span>
-                                <div className="flex gap-1">
-                                    {requiredFields.map((field) => (
-                                        <div
-                                            key={field}
-                                            className={`w-2.5 h-2.5 rounded-full transition-all ${collectedData[field]
-                                                ? (isLogic ? 'bg-cyan-400' : 'bg-rose-500')
-                                                : 'bg-slate-600/30'
-                                                }`}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
+                    {/* Mobile Progress */}
+                    <div className="sm:hidden flex items-center justify-center gap-2 mt-3">
+                        <span className={`text-xs opacity-60`}>Progress:</span>
+                        <div className="flex gap-1">
+                            {requiredFields.map((field) => (
+                                <div
+                                    key={field}
+                                    className={`w-2.5 h-2.5 rounded-full transition-all ${collectedData[field]
+                                        ? (isLogic ? 'bg-cyan-400' : 'bg-rose-500')
+                                        : 'bg-slate-600/30'
+                                        }`}
+                                />
+                            ))}
                         </div>
+                    </div>
+                </div>
             </footer>
         </div>
     );
