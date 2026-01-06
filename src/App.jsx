@@ -6,6 +6,7 @@ import {
     Terminal,
     Users,
     Cpu,
+    Bot,
     MessageSquare,
     ChevronRight,
     ChevronLeft,
@@ -44,6 +45,12 @@ const App = () => {
     const [balloonPos, setBalloonPos] = useState({ x: 0, y: -80 });
     const [showBalloon, setShowBalloon] = useState(false);
     const dotRef = useRef(null);
+
+    // Advanced Balloon Physics Refs
+    const balloonVelocity = useRef({ x: 0, y: 0 });
+    const balloonTarget = useRef({ x: 0, y: -80 });
+    const balloonPosRef = useRef({ x: 0, y: -80 }); // Ref for animation frame access
+    const balloonPhysicsFrame = useRef(null);
 
     // Core Philosophy Hover State
     const [coreHovered, setCoreHovered] = useState(false);
@@ -236,7 +243,7 @@ const App = () => {
             mouseRef.current.x = e.x;
             mouseRef.current.y = e.y;
 
-            // Balloon Physics Calculation
+            // Balloon Physics Calculation - Update target position
             if (mode === 'satisfaction' && dotRef.current) {
                 const rect = dotRef.current.getBoundingClientRect();
                 const dotCenterX = rect.left + rect.width / 2;
@@ -245,32 +252,94 @@ const App = () => {
                 let targetX = e.clientX - dotCenterX;
                 let targetY = e.clientY - dotCenterY;
 
-                // Maximum String Length
-                const maxLen = 150;
-                const releaseLen = 200; // Distance to release balloon
+                // Physics constants
+                const maxLen = 150;       // Maximum string length
+                const releaseLen = 220;   // Distance to release balloon
+                const reattachLen = 80;   // Distance to re-attach
+                const attractionZone = 350; // Distance where balloon starts sensing cursor
                 const dist = Math.sqrt(targetX * targetX + targetY * targetY);
 
-                // If cursor is beyond release distance, detach balloon
+                // Detachment/Attachment logic
                 if (dist > releaseLen) {
                     setBalloonAttached(false);
-                } else if (dist < maxLen * 0.5) {
-                    // Re-attach if cursor comes close enough
+                } else if (dist < reattachLen) {
                     setBalloonAttached(true);
                 }
 
-                // Only update balloon position if attached
+                // Update target for physics calculation
                 if (dist <= maxLen) {
-                    // Add float up bias
-                    targetY -= 30;
-                    setBalloonPos({ x: targetX, y: targetY });
+                    // Attached: Direct follow with float bias
+                    const floatBias = 35 + Math.sin(Date.now() / 500) * 5;
+                    balloonTarget.current = { x: targetX, y: targetY - floatBias };
                 } else if (dist <= releaseLen) {
-                    // At max length, constrain position
-                    targetX = (targetX / dist) * maxLen;
-                    targetY = (targetY / dist) * maxLen - 30;
-                    setBalloonPos({ x: targetX, y: targetY });
+                    // Elastic string - pull back proportionally 
+                    const tension = 1 - ((dist - maxLen) / (releaseLen - maxLen));
+                    const elasticX = (targetX / dist) * maxLen * (0.85 + tension * 0.15);
+                    const elasticY = (targetY / dist) * maxLen * (0.85 + tension * 0.15) - 35;
+                    balloonTarget.current = { x: elasticX, y: elasticY };
+                } else if (dist <= attractionZone) {
+                    // MAGNETIC ATTRACTION: Balloon leans towards cursor even when detached
+                    // Attraction strength decreases with distance
+                    const attractionStrength = 1 - ((dist - releaseLen) / (attractionZone - releaseLen));
+                    const leanAmount = 60 * attractionStrength; // Max lean of 60px towards cursor
+
+                    // Calculate lean direction (normalized)
+                    const leanX = (targetX / dist) * leanAmount;
+                    const leanY = (targetY / dist) * leanAmount - 100; // Still float up, but lean towards cursor
+
+                    balloonTarget.current = { x: leanX, y: leanY };
+                } else {
+                    // Beyond attraction zone: Default floating position
+                    balloonTarget.current = { x: 0, y: -120 };
                 }
             }
         };
+
+        // Spring Physics Animation Loop for smooth balloon movement
+        const updateBalloonPhysics = () => {
+            if (mode === 'satisfaction') {
+                const springStiffness = 0.15;  // How fast balloon follows (higher = snappier)
+                const damping = 0.82;          // Friction/resistance (lower = more bouncy)
+                const mass = 1.0;              // Balloon mass (higher = more sluggish)
+
+                // Get current position from ref (avoids stale closure)
+                const currentPos = balloonPosRef.current;
+
+                // Calculate spring force
+                const dx = balloonTarget.current.x - currentPos.x;
+                const dy = balloonTarget.current.y - currentPos.y;
+
+                // Apply spring acceleration
+                const ax = (dx * springStiffness) / mass;
+                const ay = (dy * springStiffness) / mass;
+
+                // Update velocity with damping
+                balloonVelocity.current.x = (balloonVelocity.current.x + ax) * damping;
+                balloonVelocity.current.y = (balloonVelocity.current.y + ay) * damping;
+
+                // Add subtle natural wobble for realism
+                const wobbleX = Math.sin(Date.now() / 700) * 0.5;
+                const wobbleY = Math.cos(Date.now() / 500) * 0.3;
+
+                // Calculate new position
+                const newX = currentPos.x + balloonVelocity.current.x + wobbleX;
+                const newY = currentPos.y + balloonVelocity.current.y + wobbleY;
+
+                // Only update if there's significant movement (avoid micro-updates)
+                const totalMovement = Math.abs(dx) + Math.abs(dy) +
+                    Math.abs(balloonVelocity.current.x) + Math.abs(balloonVelocity.current.y);
+
+                if (totalMovement > 0.15) {
+                    // Update both ref (for next frame) and state (for render)
+                    balloonPosRef.current = { x: newX, y: newY };
+                    setBalloonPos({ x: newX, y: newY });
+                }
+            }
+            balloonPhysicsFrame.current = requestAnimationFrame(updateBalloonPhysics);
+        };
+
+        // Start balloon physics loop
+        balloonPhysicsFrame.current = requestAnimationFrame(updateBalloonPhysics);
 
         window.addEventListener('mousemove', handleMouseMove);
         init();
@@ -280,6 +349,9 @@ const App = () => {
             window.removeEventListener('resize', setCanvasSize);
             window.removeEventListener('mousemove', handleMouseMove);
             cancelAnimationFrame(animationFrameId);
+            if (balloonPhysicsFrame.current) {
+                cancelAnimationFrame(balloonPhysicsFrame.current);
+            }
         };
     }, [mode]);
 
@@ -503,11 +575,11 @@ const App = () => {
 
                         <div className="flex flex-wrap gap-4 relative z-20">
                             <button
-                                onClick={() => isLogic ? window.open('https://github.com/Barodillah', '_blank') : navigateToChat()}
+                                onClick={() => isLogic ? navigateToChat() : navigateToChat()}
                                 className={`px-8 py-4 rounded-xl flex items-center gap-3 font-bold transition-all transform hover:scale-105 active:scale-95 ${isLogic ? 'bg-cyan-500 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,0.3)]' : 'bg-rose-500 text-white shadow-[0_0_20px_rgba(244,63,94,0.3)]'}`}
                             >
-                                {isLogic ? <Github size={20} /> : <MessageSquare size={20} />}
-                                {isLogic ? "Review My Logic" : "Start a Conversation"}
+                                {isLogic ? <Bot size={20} /> : <MessageSquare size={20} />}
+                                {isLogic ? "Chat My Assistant" : "Start a Conversation"}
                             </button>
                             <button
                                 onClick={openCallModal}
