@@ -310,6 +310,8 @@ const App = () => {
         }
     }, [mode]);
 
+    const [currentYear, setCurrentYear] = useState(2018);
+
     useEffect(() => {
         const handleScroll = () => {
             setScrolled(window.scrollY > 50);
@@ -317,8 +319,24 @@ const App = () => {
             if (timelineRef.current) {
                 const rect = timelineRef.current.getBoundingClientRect();
                 const windowHeight = window.innerHeight;
-                const progress = Math.max(0, Math.min(1, (windowHeight - rect.top) / (rect.height + windowHeight)));
-                setTimelineProgress(progress);
+                // Calculate progress: 0 when top of section hits bottom of viewport, 1 when bottom of section hits top of viewport
+                // Adjusted to be more centered: 0 when top hits center, 1 when bottom hits center
+                const totalHeight = rect.height + windowHeight;
+                const scrollPos = windowHeight - rect.top;
+
+                // Progress from 0 to 1
+                const rawProgress = Math.max(0, Math.min(1, scrollPos / totalHeight));
+                setTimelineProgress(rawProgress);
+
+                // Calculate year: 2018 to Current Year + 1 (future proof)
+                const startYear = 2018;
+                const endYear = new Date().getFullYear();
+
+                // Map progress (roughly 0.2 to 0.8 range for visibility) to years
+                const yearProgress = Math.max(0, Math.min(1, (rawProgress - 0.2) / 0.6));
+                const calcYear = Math.floor(yearProgress * (endYear - startYear) + startYear);
+
+                setCurrentYear(Math.min(endYear, Math.max(startYear, calcYear)));
             }
         };
 
@@ -510,6 +528,13 @@ const App = () => {
                     <div className="relative max-w-5xl mx-auto">
                         {/* Center Line */}
                         <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-500/20"></div>
+
+                        {/* Dynamic Year Background */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none select-none overflow-hidden flex items-center justify-center w-full h-full">
+                            <span className={`text-[15rem] md:text-[25rem] font-bold opacity-5 leading-none transition-all duration-300 ${isLogic ? 'text-cyan-500' : 'text-rose-500'}`}>
+                                {currentYear}
+                            </span>
+                        </div>
 
                         {/* Scroll Particle (Follows for both modes) */}
                         <div
