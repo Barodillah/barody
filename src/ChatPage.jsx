@@ -93,6 +93,30 @@ const ChatPage = () => {
         return extracted;
     };
 
+    // Detect end-of-conversation phrases
+    const isEndOfConversation = (message) => {
+        const lowerMsg = message.toLowerCase().trim();
+        const endPhrases = [
+            'cukup', 'sudah cukup', 'cukup sekian',
+            'selesai', 'sudah selesai',
+            'terima kasih', 'makasih', 'thanks', 'thank you', 'thx',
+            'oke terima kasih', 'ok terima kasih', 'oke thanks', 'ok thanks',
+            'sampai jumpa', 'bye', 'goodbye', 'dadah', 'dah',
+            'tidak ada lagi', 'sudah itu saja', 'itu saja', 'itu aja',
+            'sudah cukup terima kasih', 'cukup terima kasih',
+            'tidak', 'no', 'nope', 'nggak', 'ga', 'gak', 'engga', 'enggak'
+        ];
+
+        // Check if message matches any end phrase (exact or contains)
+        return endPhrases.some(phrase => {
+            // Exact match or message is very short with end keyword
+            if (lowerMsg === phrase) return true;
+            // For very short messages (< 20 chars), check if contains end phrase
+            if (lowerMsg.length < 20 && lowerMsg.includes(phrase)) return true;
+            return false;
+        });
+    };
+
     // Theme styles
     const theme = {
         bg: isLogic ? 'bg-slate-950' : 'bg-stone-50',
@@ -365,6 +389,33 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
         const userMessage = content.trim();
         setInputValue('');
         setSuggestedQuestions([]); // Clear suggestions after sending
+
+        // Check if all data is collected AND user wants to end conversation
+        const allDataCollected = requiredFields.every(field => collectedData[field]);
+        if (allDataCollected && isEndOfConversation(userMessage)) {
+            // Add user's closing message
+            setMessages(prev => [...prev, {
+                type: 'user',
+                text: userMessage,
+                timestamp: new Date()
+            }]);
+
+            // Generate closing response and set complete
+            const closingMessage = isLogic
+                ? `// Session terminated by user request.\n> Terima kasih telah menggunakan sistem kami.\n> Tim kami akan menghubungi Anda segera melalui ${collectedData.email || collectedData.telepon}.`
+                : `Terima kasih banyak ${collectedData.nama}! 💕\n\nSenang bisa mengobrol denganmu. Tim kami akan segera menghubungimu untuk diskusi lebih lanjut.\n\nSampai jumpa! 👋😊`;
+
+            setTimeout(() => {
+                setMessages(prev => [...prev, {
+                    type: 'bot',
+                    text: closingMessage,
+                    timestamp: new Date()
+                }]);
+                setIsComplete(true);
+            }, 500);
+
+            return; // Don't proceed with normal flow
+        }
 
         // Add user message
         setMessages(prev => [...prev, {
