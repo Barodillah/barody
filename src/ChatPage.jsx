@@ -26,6 +26,7 @@ const ChatPage = () => {
     const [isComplete, setIsComplete] = useState(false);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
+    const [suggestedQuestions, setSuggestedQuestions] = useState([]);
 
     // Data collection state
     const [collectedData, setCollectedData] = useState({
@@ -64,42 +65,56 @@ const ChatPage = () => {
 
     // System prompt based on mode
     const getSystemPrompt = () => {
-        const baseContext = `Kamu adalah asisten virtual BAROD.Y yang bertugas mengumpulkan 4 data penting dari user:
+        const baseContext = `Kamu adalah asisten virtual BAROD.Y (Barod Yoedhistira), seorang Hybrid Solution Architect yang menggabungkan dua dunia:
+1. **Logic (Fullstack Developer):** Fokus pada arsitektur scalable, optimasi database (Laravel/Redis), dan performa tinggi. Filosofi: "Performance is Reliability".
+2. **Satisfaction (CS Manager):** Fokus pada kepuasan pengguna (NPS 90+), manajemen krisis, dan empati. Filosofi: "Ease of Use is Respect".
+
+**Metodologi: Satisfaction-Driven Development**
+- Empathy Mapping: Pahami frustrasi user dulu.
+- Clean Architecture: Kode modular untuk jangka panjang.
+- Iterative Feedback: Deploy, dengar, sempurnakan.
+
+**Tugas Utama:** 
+Mengumpulkan 4 data penting dari calon klien/partner:
 1. Nama lengkap (nama)
 2. Email (email)  
 3. Nomor Telepon/WhatsApp (telepon)
-4. Kebutuhan/masalah yang ingin diselesaikan (kebutuhan)
+4. Kebutuhan/masalah (kebutuhan)
 
-Data yang sudah terkumpul:
+Data yang SUDAH terkumpul sejauh ini:
 ${JSON.stringify(collectedData, null, 2)}
 
-ATURAN PENTING:
-- Jika user menjawab sesuatu yang tidak relevan dengan data yang diminta, arahkan kembali dengan sopan untuk memberikan data yang belum lengkap.
-- Jika user memberikan informasi yang bisa diekstrak (misalnya "nama saya Budi"), ekstrak dan akui bahwa kamu sudah menerima datanya.
-- Hanya tanyakan satu data per respons.
-- Jika semua 4 data sudah lengkap, berikan ringkasan data yang terkumpul dan ucapkan terima kasih.
+**INFORMASI LAYANAN (JIKA DITANYA):**
+- **Web Development:** Laravel, React, Vue.js, Node.js.
+- **System Optimization:** Menangani high-traffic, optimasi query, caching.
+- **Consulting:** Membangun tim CS, alur kerja CRM, dan solusi teknis yang manusiawi.
 
-PENTING: Selalu sertakan tag JSON di akhir responsmu untuk mengekstrak data (tidak ditampilkan ke user):
-[DATA_EXTRACT]{"nama": "", "email": "", "telepon": "", "kebutuhan": ""}[/DATA_EXTRACT]
-Isi field yang berhasil diektrak dari pesan user saat ini. Kosongkan jika tidak ada.`;
+**ATURAN EKSTRAKSI DATA:**
+- Ektrak data SETIAP KALI user memberikannya, meskipun dalam kalimat panjang.
+- Jika user bertanya tentang layanan, JELASKAN dengan detail sesuai profil di atas (sesuaikan dengan mode Logic/Satisfaction), lalu arahkan kembali ke pengumpulan data dengan halus.
+- JANGAN tanya data yang sudah ada di "Data yang SUDAH terkumpul".
+
+**FORMAT RESPONSE:**
+Akhiri SETIAP response dengan tag JSON ini (wajib ada, jangan diubah formatnya):
+[DATA_EXTRACT]{"nama": "...", "email": "...", "telepon": "...", "kebutuhan": "..."}[/DATA_EXTRACT]
+*Isi field yang BARU saja didapat dari pesan terakhir user. Biarkan kosong ("") jika tidak ada data baru.*`;
 
         if (isLogic) {
             return `${baseContext}
 
-GAYA BAHASA: 
-- Formal, prosedural, dan langsung ke inti masalah
-- Gunakan format teknis seperti ">" untuk prompt dan "//" untuk komentar
-- Tidak perlu basa-basi, langsung minta data yang diperlukan
-- Contoh: "> Input nama lengkap:" atau "// Data tersimpan. > Input email:"`;
+GAYA BAHASA (LOGIC MODE): 
+- **Profesional, Efisien, To-the-Point.**
+- Gunakan terminologi teknis jika relevan.
+- Format seperti log sistem atau terminal (gunakan ">" untuk prompt).
+- Contoh: "> Menganalisis kebutuhan... Layanan kami mencakup optimasi sistem high-load. Untuk proceed, input email Anda:"`;
         } else {
             return `${baseContext}
 
-GAYA BAHASA:
-- Ramah, hangat, dan penuh empati
-- Gunakan emoji dengan wajar untuk menambah keakraban
-- Tunjukkan apresiasi dan antusiasme terhadap respons user
-- Buat percakapan terasa seperti berbicara dengan teman
-- Contoh: "Terima kasih sudah berbagi! 😊 Boleh tahu emailmu?" atau "Wah, kebutuhan yang menarik! 💡"`;
+GAYA BAHASA (SATISFACTION MODE):
+- **Hangat, Empatik, Antusias (Customer Obsessed).**
+- Fokus pada solusi masalah ("pain points") user.
+- Gunakan emoji yang friendly tapi profesional.
+- Contoh: "Wah, ide yang menarik! Kami bisa bantu bangun sistem yang smooth seperti itu. Boleh minta emailnya untuk kami kirim detailnya? 😊"`;
         }
     };
 
@@ -232,6 +247,11 @@ GAYA BAHASA:
                     { role: 'assistant', content: introMessage }
                 ]);
                 setIsTyping(false);
+                setIsTyping(false);
+                setSuggestedQuestions(isLogic
+                    ? ["Jelaskan Tech Stack", "Apa itu Satisfaction-Driven Dev?"]
+                    : ["Layanan apa saja yang ada?", "Apa filosofi 'Ease of Use'?"]
+                );
             }, 1000);
         };
 
@@ -273,11 +293,13 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
     }, [collectedData, completedFields.length, isComplete, isLogic, requiredFields.length]);
 
     // Handle user message
-    const handleSend = async () => {
-        if (!inputValue.trim() || isTyping || isComplete) return;
+    const handleSend = async (messageOverride = null) => {
+        const content = typeof messageOverride === 'string' ? messageOverride : inputValue;
+        if (!content.trim() || isTyping || isComplete) return;
 
-        const userMessage = inputValue.trim();
+        const userMessage = content.trim();
         setInputValue('');
+        setSuggestedQuestions([]); // Clear suggestions after sending
 
         // Add user message
         setMessages(prev => [...prev, {
@@ -357,8 +379,8 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
                                 {requiredFields.map((field, idx) => (
                                     <div
                                         key={field}
-                                        className={`w-3 h-3 rounded-full transition-all ${collectedData[field]
-                                            ? (isLogic ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]' : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]')
+                                        className={`w-3 h-3 rounded-full transition-all duration-500 ${collectedData[field]
+                                            ? (isLogic ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)] animate-pulse' : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)] animate-pulse')
                                             : 'bg-slate-600/30'
                                             }`}
                                     />
@@ -430,67 +452,87 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
             <footer className={`sticky bottom-0 border-t ${theme.border} ${isLogic ? 'bg-slate-950/95' : 'bg-white/95'} backdrop-blur-md`}>
                 <div className="container mx-auto max-w-3xl px-4 py-4">
                     {!isComplete ? (
-                        <div className="flex gap-3">
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                onKeyPress={handleKeyPress}
-                                placeholder={isLogic ? "> Enter your response..." : "Ketik pesanmu di sini..."}
-                                disabled={isTyping}
-                                className={`flex-1 px-4 py-3 rounded-xl border ${theme.border} ${theme.inputBg} ${theme.text}
+                        <div className="flex flex-col gap-2">
+                            {/* Suggested Questions */}
+                            {suggestedQuestions.length > 0 && !isTyping && (
+                                <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar animate-fade-in-up">
+                                    {suggestedQuestions.map((q, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => handleSend(q)}
+                                            className={`text-xs px-3 py-1.5 rounded-full border transition-all hover:scale-105 whitespace-nowrap
+                                                ${isLogic
+                                                    ? 'bg-slate-900/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-950 hover:border-cyan-400'
+                                                    : 'bg-white/50 border-rose-200 text-rose-500 hover:bg-rose-50 hover:border-rose-400'
+                                                }`}
+                                        >
+                                            {q}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div className="flex gap-3">
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    onKeyPress={handleKeyPress}
+                                    placeholder={isLogic ? "> Enter your response..." : "Ketik pesanmu di sini..."}
+                                    disabled={isTyping}
+                                    className={`flex-1 px-4 py-3 rounded-xl border ${theme.border} ${theme.inputBg} ${theme.text}
                                     placeholder:opacity-40 focus:outline-none focus:ring-2 
                                     ${isLogic ? 'focus:ring-cyan-500/50' : 'focus:ring-rose-500/50'}
                                     disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
-                            />
-                            <button
-                                onClick={handleSend}
-                                disabled={!inputValue.trim() || isTyping}
-                                className={`px-4 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95
+                                />
+                                <button
+                                    onClick={handleSend}
+                                    disabled={!inputValue.trim() || isTyping}
+                                    className={`px-4 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95
                                     disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100
                                     ${isLogic
-                                        ? 'bg-cyan-500 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,0.3)]'
-                                        : 'bg-rose-500 text-white shadow-[0_0_20px_rgba(244,63,94,0.3)]'
-                                    }`}
-                            >
-                                <Send size={20} />
-                            </button>
-                        </div>
-                    ) : (
-                        <div className={`text-center py-4 rounded-xl border ${theme.card} ${theme.border}`}>
-                            <CheckCircle className={`mx-auto mb-2 ${theme.accent}`} size={32} />
-                            <p className="font-bold">
-                                {isLogic ? '// Session Complete' : 'Percakapan Selesai! 🎉'}
-                            </p>
-                            <p className="text-sm opacity-60 mt-1">
-                                {isLogic ? 'Data telah tercatat dalam sistem.' : 'Terima kasih sudah berbagi!'}
-                            </p>
-                            <button
-                                onClick={() => navigate('/')}
-                                className={`mt-4 px-6 py-2 rounded-lg font-bold transition-all hover:scale-105 ${theme.accentBg} text-white`}
-                            >
-                                {isLogic ? 'Return to Main' : 'Kembali ke Beranda'}
-                            </button>
-                        </div>
+                                            ? 'bg-cyan-500 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,0.3)]'
+                                            : 'bg-rose-500 text-white shadow-[0_0_20px_rgba(244,63,94,0.3)]'
+                                        }`}
+                                >
+                                    <Send size={20} />
+                                </button>
+                            </div>
+                            ) : (
+                            <div className={`text-center py-4 rounded-xl border ${theme.card} ${theme.border}`}>
+                                <CheckCircle className={`mx-auto mb-2 ${theme.accent}`} size={32} />
+                                <p className="font-bold">
+                                    {isLogic ? '// Session Complete' : 'Percakapan Selesai! 🎉'}
+                                </p>
+                                <p className="text-sm opacity-60 mt-1">
+                                    {isLogic ? 'Data telah tercatat dalam sistem.' : 'Terima kasih sudah berbagi!'}
+                                </p>
+                                <button
+                                    onClick={() => navigate('/')}
+                                    className={`mt-4 px-6 py-2 rounded-lg font-bold transition-all hover:scale-105 ${theme.accentBg} text-white`}
+                                >
+                                    {isLogic ? 'Return to Main' : 'Kembali ke Beranda'}
+                                </button>
+                            </div>
                     )}
 
-                    {/* Mobile Progress */}
-                    <div className="sm:hidden flex items-center justify-center gap-2 mt-3">
-                        <span className={`text-xs opacity-60`}>Progress:</span>
-                        <div className="flex gap-1">
-                            {requiredFields.map((field) => (
-                                <div
-                                    key={field}
-                                    className={`w-2.5 h-2.5 rounded-full transition-all ${collectedData[field]
-                                        ? (isLogic ? 'bg-cyan-400' : 'bg-rose-500')
-                                        : 'bg-slate-600/30'
-                                        }`}
-                                />
-                            ))}
+                            {/* Mobile Progress */}
+                            <div className="sm:hidden flex items-center justify-center gap-2 mt-3">
+                                <span className={`text-xs opacity-60`}>Progress:</span>
+                                <div className="flex gap-1">
+                                    {requiredFields.map((field) => (
+                                        <div
+                                            key={field}
+                                            className={`w-2.5 h-2.5 rounded-full transition-all ${collectedData[field]
+                                                ? (isLogic ? 'bg-cyan-400' : 'bg-rose-500')
+                                                : 'bg-slate-600/30'
+                                                }`}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
             </footer>
         </div>
     );
