@@ -43,6 +43,56 @@ const ChatPage = () => {
     const requiredFields = ['nama', 'email', 'telepon', 'kebutuhan'];
     const completedFields = requiredFields.filter(field => collectedData[field]);
 
+    // Fallback: Extract data directly from user message using regex patterns
+    const extractDataFromUserMessage = (message) => {
+        const extracted = {};
+        const lowerMsg = message.toLowerCase();
+
+        // Email pattern
+        const emailMatch = message.match(/[\w.-]+@[\w.-]+\.\w+/);
+        if (emailMatch) {
+            extracted.email = emailMatch[0];
+        }
+
+        // Phone pattern (Indonesian format)
+        const phoneMatch = message.match(/(?:\+62|62|0)[\s-]?\d{2,4}[\s-]?\d{3,4}[\s-]?\d{3,4}/);
+        if (phoneMatch) {
+            extracted.telepon = phoneMatch[0].replace(/[\s-]/g, '');
+        }
+
+        // Name pattern (common phrases)
+        const namaPatterns = [
+            /nama\s*(?:saya|ku|gw|gue|aku)?\s*(?:adalah)?\s*[:\-]?\s*([a-zA-Z\s]{2,30})/i,
+            /(?:saya|aku|nama)\s+([a-zA-Z]{2,20}(?:\s+[a-zA-Z]{2,20})?)/i,
+            /^([a-zA-Z]{2,20}(?:\s+[a-zA-Z]{2,20})?)$/i  // Just a name on its own
+        ];
+        for (const pattern of namaPatterns) {
+            const match = message.match(pattern);
+            if (match && match[1] && !match[1].toLowerCase().includes('email') && !match[1].toLowerCase().includes('telepon')) {
+                extracted.nama = match[1].trim();
+                break;
+            }
+        }
+
+        // Kebutuhan pattern (longer sentences that aren't other data types)
+        if (!extracted.email && !extracted.telepon && !extracted.nama && message.length > 15) {
+            // If it's a longer message and doesn't match other patterns, might be kebutuhan
+            const kebutuhanPatterns = [
+                /(?:butuh|perlu|ingin|mau|pengen)\s+(.{10,})/i,
+                /(?:kebutuhan|masalah|kendala)\s*(?:saya|ku)?\s*(?:adalah)?\s*[:\-]?\s*(.{10,})/i
+            ];
+            for (const pattern of kebutuhanPatterns) {
+                const match = message.match(pattern);
+                if (match && match[1]) {
+                    extracted.kebutuhan = match[1].trim();
+                    break;
+                }
+            }
+        }
+
+        return extracted;
+    };
+
     // Theme styles
     const theme = {
         bg: isLogic ? 'bg-slate-950' : 'bg-stone-50',
@@ -317,16 +367,28 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
 
         // Get AI response
         setIsTyping(true);
-        const { message, extractedData } = await callOpenRouter(userMessage);
+        const { message, extractedData: aiExtractedData } = await callOpenRouter(userMessage);
+
+        // Fallback: Extract data directly from user input
+        const fallbackExtracted = extractDataFromUserMessage(userMessage);
+        console.log('🔄 Fallback extracted:', fallbackExtracted);
+
+        // Merge: AI extraction takes priority, fallback fills gaps
+        const mergedExtracted = { ...fallbackExtracted, ...aiExtractedData };
+        console.log('🔀 Merged extraction:', mergedExtracted);
 
         // Update collected data with any extracted info
-        if (extractedData && Object.keys(extractedData).length > 0) {
+        const hasNewData = Object.keys(mergedExtracted).some(
+            key => mergedExtracted[key] && typeof mergedExtracted[key] === 'string' && mergedExtracted[key].trim()
+        );
+
+        if (hasNewData) {
             setCollectedData(prev => {
                 const updated = { ...prev };
-                Object.keys(extractedData).forEach(key => {
-                    // Only update if the new value is non-empty AND the key is valid
-                    const newValue = extractedData[key];
-                    if (newValue && typeof newValue === 'string' && newValue.trim() && requiredFields.includes(key)) {
+                Object.keys(mergedExtracted).forEach(key => {
+                    // Only update if the new value is non-empty AND the key is valid AND we don't already have this data
+                    const newValue = mergedExtracted[key];
+                    if (newValue && typeof newValue === 'string' && newValue.trim() && requiredFields.includes(key) && !prev[key]) {
                         updated[key] = newValue.trim();
                         console.log(`✅ Updated ${key}:`, updated[key]);
                     }
