@@ -23,7 +23,7 @@ const ChatPage = () => {
     const [messages, setMessages] = useState([]);
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
-    const [currentStep, setCurrentStep] = useState(0);
+    const [isComplete, setIsComplete] = useState(false);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -35,49 +35,12 @@ const ChatPage = () => {
         kebutuhan: ''
     });
 
+    // Conversation history for API
+    const [conversationHistory, setConversationHistory] = useState([]);
+
     // Required fields
     const requiredFields = ['nama', 'email', 'telepon', 'kebutuhan'];
     const completedFields = requiredFields.filter(field => collectedData[field]);
-
-    // Bot questions flow
-    const botQuestions = [
-        {
-            field: null,
-            message: isLogic
-                ? "// Initializing data collection protocol...\n> Halo! Saya adalah asisten virtual BAROD.Y. Mari kita mulai proses pengumpulan data untuk solusi teknis Anda."
-                : "Hai! 👋 Senang bertemu denganmu! Saya di sini untuk membantu memahami kebutuhanmu dengan lebih baik. Yuk ceritakan sedikit tentang dirimu!"
-        },
-        {
-            field: 'nama',
-            message: isLogic
-                ? "> Masukkan nama lengkap Anda untuk registrasi sistem:"
-                : "Boleh tahu nama lengkapmu? 😊"
-        },
-        {
-            field: 'email',
-            message: isLogic
-                ? "> Input email address untuk komunikasi dan notifikasi:"
-                : "Terima kasih! Sekarang, bisa share email-mu? Ini untuk memudahkan kami menghubungimu nanti 📧"
-        },
-        {
-            field: 'telepon',
-            message: isLogic
-                ? "> Masukkan nomor telepon (format: +62xxx):"
-                : "Perfect! Nomor telepon/WhatsApp yang bisa dihubungi? 📱"
-        },
-        {
-            field: 'kebutuhan',
-            message: isLogic
-                ? "> Jelaskan kebutuhan proyek atau permasalahan teknis yang ingin diselesaikan:"
-                : "Nah, sekarang bagian serunya! Ceritakan dong, apa yang bisa kami bantu? Mau bikin website, aplikasi, atau ada masalah yang ingin dipecahkan? 💡"
-        },
-        {
-            field: null,
-            message: isLogic
-                ? "✓ Data collection complete. Processing...\n> Terima kasih! Data Anda telah tercatat dalam sistem. Tim kami akan segera menghubungi Anda untuk konsultasi lanjutan."
-                : "Yeay! Semua sudah lengkap! 🎉 Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih lanjut. Sampai jumpa! 💕"
-        }
-    ];
 
     // Theme styles
     const theme = {
@@ -99,6 +62,152 @@ const ChatPage = () => {
         scrollbar: isLogic ? 'scrollbar-cyan' : 'scrollbar-rose'
     };
 
+    // System prompt based on mode
+    const getSystemPrompt = () => {
+        const baseContext = `Kamu adalah asisten virtual BAROD.Y yang bertugas mengumpulkan 4 data penting dari user:
+1. Nama lengkap (nama)
+2. Email (email)  
+3. Nomor Telepon/WhatsApp (telepon)
+4. Kebutuhan/masalah yang ingin diselesaikan (kebutuhan)
+
+Data yang sudah terkumpul:
+${JSON.stringify(collectedData, null, 2)}
+
+ATURAN PENTING:
+- Jika user menjawab sesuatu yang tidak relevan dengan data yang diminta, arahkan kembali dengan sopan untuk memberikan data yang belum lengkap.
+- Jika user memberikan informasi yang bisa diekstrak (misalnya "nama saya Budi"), ekstrak dan akui bahwa kamu sudah menerima datanya.
+- Hanya tanyakan satu data per respons.
+- Jika semua 4 data sudah lengkap, berikan ringkasan data yang terkumpul dan ucapkan terima kasih.
+
+PENTING: Selalu sertakan tag JSON di akhir responsmu untuk mengekstrak data (tidak ditampilkan ke user):
+[DATA_EXTRACT]{"nama": "", "email": "", "telepon": "", "kebutuhan": ""}[/DATA_EXTRACT]
+Isi field yang berhasil diektrak dari pesan user saat ini. Kosongkan jika tidak ada.`;
+
+        if (isLogic) {
+            return `${baseContext}
+
+GAYA BAHASA: 
+- Formal, prosedural, dan langsung ke inti masalah
+- Gunakan format teknis seperti ">" untuk prompt dan "//" untuk komentar
+- Tidak perlu basa-basi, langsung minta data yang diperlukan
+- Contoh: "> Input nama lengkap:" atau "// Data tersimpan. > Input email:"`;
+        } else {
+            return `${baseContext}
+
+GAYA BAHASA:
+- Ramah, hangat, dan penuh empati
+- Gunakan emoji dengan wajar untuk menambah keakraban
+- Tunjukkan apresiasi dan antusiasme terhadap respons user
+- Buat percakapan terasa seperti berbicara dengan teman
+- Contoh: "Terima kasih sudah berbagi! 😊 Boleh tahu emailmu?" atau "Wah, kebutuhan yang menarik! 💡"`;
+        }
+    };
+
+    // Call OpenRouter API
+    const callOpenRouter = async (userMessage) => {
+        const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+        const model = import.meta.env.VITE_OPENROUTER_MODEL || 'openai/gpt-3.5-turbo';
+
+        // 🔍 DEBUG: Log configuration
+        console.group('🔍 OpenRouter API Debug');
+        console.log('API Key:', apiKey ? `${apiKey.substring(0, 15)}...${apiKey.substring(apiKey.length - 5)}` : 'NOT SET');
+        console.log('Model:', model);
+        console.log('Referer:', window.location.origin);
+
+        if (!apiKey || apiKey === 'your_openrouter_api_key_here') {
+            console.error('❌ OpenRouter API key not configured');
+            console.groupEnd();
+            return {
+                message: isLogic
+                    ? '// ERROR: API key tidak dikonfigurasi. Hubungi administrator.'
+                    : 'Maaf, ada masalah teknis. Silakan hubungi tim kami langsung ya! 🙏',
+                extractedData: {}
+            };
+        }
+
+        const newHistory = [
+            ...conversationHistory,
+            { role: 'user', content: userMessage }
+        ];
+
+        const requestBody = {
+            model: model,
+            messages: [
+                { role: 'system', content: getSystemPrompt() },
+                ...newHistory
+            ],
+            temperature: 0.7,
+            max_tokens: 500
+        };
+
+        console.log('📤 Request Body:', JSON.stringify(requestBody, null, 2));
+
+        try {
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': window.location.origin,
+                    'X-Title': 'BAROD.Y Assistant'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            console.log('📥 Response Status:', response.status);
+            console.log('📥 Response Headers:', Object.fromEntries(response.headers.entries()));
+
+            if (!response.ok) {
+                // 🔍 DEBUG: Read error response body
+                const errorBody = await response.text();
+                console.error('❌ API Error Response Body:', errorBody);
+                console.groupEnd();
+                throw new Error(`API error: ${response.status} - ${errorBody}`);
+            }
+
+            const data = await response.json();
+            console.log('✅ API Response Data:', data);
+            let assistantMessage = data.choices[0]?.message?.content || '';
+
+            // Extract data from response
+            let extractedData = {};
+            const dataMatch = assistantMessage.match(/\[DATA_EXTRACT\](.*?)\[\/DATA_EXTRACT\]/s);
+            if (dataMatch) {
+                try {
+                    extractedData = JSON.parse(dataMatch[1]);
+                    // Remove the data tag from visible message
+                    assistantMessage = assistantMessage.replace(/\[DATA_EXTRACT\].*?\[\/DATA_EXTRACT\]/s, '').trim();
+                } catch (e) {
+                    console.error('Failed to parse extracted data:', e);
+                }
+            }
+
+            console.log('📝 Extracted Data:', extractedData);
+            console.log('💬 Assistant Message:', assistantMessage);
+            console.groupEnd();
+
+            // Update conversation history
+            setConversationHistory([
+                ...newHistory,
+                { role: 'assistant', content: assistantMessage }
+            ]);
+
+            return {
+                message: assistantMessage,
+                extractedData
+            };
+        } catch (error) {
+            console.error('❌ OpenRouter API error:', error);
+            console.groupEnd();
+            return {
+                message: isLogic
+                    ? `// ERROR: ${error.message}. Coba lagi.`
+                    : `Maaf, ada gangguan sementara. Bisa coba lagi? 🙏`,
+                extractedData: {}
+            };
+        }
+    };
+
     // Scroll to bottom on new messages
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -106,38 +215,66 @@ const ChatPage = () => {
 
     // Start conversation on mount
     useEffect(() => {
-        const timer = setTimeout(() => {
+        const startConversation = async () => {
             setIsTyping(true);
+
+            const introMessage = isLogic
+                ? "// Initializing data collection protocol...\n> Halo! Saya adalah asisten virtual BAROD.Y. Mari mulai proses pengumpulan data.\n> Input nama lengkap Anda:"
+                : "Hai! 👋 Senang bertemu denganmu! Saya di sini untuk membantu memahami kebutuhanmu dengan lebih baik.\n\nBoleh tahu nama lengkapmu? 😊";
+
             setTimeout(() => {
                 setMessages([{
                     type: 'bot',
-                    text: botQuestions[0].message,
+                    text: introMessage,
                     timestamp: new Date()
                 }]);
+                setConversationHistory([
+                    { role: 'assistant', content: introMessage }
+                ]);
                 setIsTyping(false);
-                setCurrentStep(1);
+            }, 1000);
+        };
 
-                // Ask first question after intro
-                setTimeout(() => {
-                    setIsTyping(true);
-                    setTimeout(() => {
-                        setMessages(prev => [...prev, {
-                            type: 'bot',
-                            text: botQuestions[1].message,
-                            timestamp: new Date()
-                        }]);
-                        setIsTyping(false);
-                    }, 1000);
-                }, 500);
-            }, 1500);
-        }, 500);
+        startConversation();
+    }, [isLogic]);
 
-        return () => clearTimeout(timer);
-    }, []);
+    // Check if all data is complete
+    useEffect(() => {
+        if (completedFields.length === requiredFields.length && !isComplete) {
+            setIsComplete(true);
+
+            // Generate summary
+            const summary = isLogic
+                ? `// ========== DATA COLLECTION COMPLETE ==========
+> Nama: ${collectedData.nama}
+> Email: ${collectedData.email}
+> Telepon: ${collectedData.telepon}
+> Kebutuhan: ${collectedData.kebutuhan}
+// =============================================
+> Terima kasih. Tim kami akan menghubungi Anda segera.`
+                : `Yeay! Semua data sudah lengkap! 🎉
+
+📋 **Ringkasan Data:**
+• Nama: ${collectedData.nama}
+• Email: ${collectedData.email}
+• Telepon: ${collectedData.telepon}
+• Kebutuhan: ${collectedData.kebutuhan}
+
+Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih lanjut. Sampai jumpa! 💕`;
+
+            setTimeout(() => {
+                setMessages(prev => [...prev, {
+                    type: 'bot',
+                    text: summary,
+                    timestamp: new Date()
+                }]);
+            }, 500);
+        }
+    }, [collectedData, completedFields.length, isComplete, isLogic, requiredFields.length]);
 
     // Handle user message
-    const handleSend = () => {
-        if (!inputValue.trim() || isTyping) return;
+    const handleSend = async () => {
+        if (!inputValue.trim() || isTyping || isComplete) return;
 
         const userMessage = inputValue.trim();
         setInputValue('');
@@ -149,33 +286,30 @@ const ChatPage = () => {
             timestamp: new Date()
         }]);
 
-        // Save data based on current step
-        const currentQuestion = botQuestions[currentStep];
-        if (currentQuestion?.field) {
-            setCollectedData(prev => ({
-                ...prev,
-                [currentQuestion.field]: userMessage
-            }));
+        // Get AI response
+        setIsTyping(true);
+        const { message, extractedData } = await callOpenRouter(userMessage);
+
+        // Update collected data with any extracted info
+        if (extractedData && Object.keys(extractedData).length > 0) {
+            setCollectedData(prev => {
+                const updated = { ...prev };
+                Object.keys(extractedData).forEach(key => {
+                    if (extractedData[key] && extractedData[key].trim()) {
+                        updated[key] = extractedData[key].trim();
+                    }
+                });
+                return updated;
+            });
         }
 
-        // Move to next step
-        const nextStep = currentStep + 1;
-        if (nextStep < botQuestions.length) {
-            setCurrentStep(nextStep);
-
-            // Bot response
-            setTimeout(() => {
-                setIsTyping(true);
-                setTimeout(() => {
-                    setMessages(prev => [...prev, {
-                        type: 'bot',
-                        text: botQuestions[nextStep].message,
-                        timestamp: new Date()
-                    }]);
-                    setIsTyping(false);
-                }, 1200);
-            }, 500);
-        }
+        // Add bot response
+        setMessages(prev => [...prev, {
+            type: 'bot',
+            text: message,
+            timestamp: new Date()
+        }]);
+        setIsTyping(false);
     };
 
     const handleKeyPress = (e) => {
@@ -184,8 +318,6 @@ const ChatPage = () => {
             handleSend();
         }
     };
-
-    const isComplete = currentStep >= botQuestions.length - 1 && completedFields.length === requiredFields.length;
 
     return (
         <div className={`min-h-screen flex flex-col chat-page-enter ${theme.bg} ${theme.text} ${theme.font}`} data-theme={mode}>

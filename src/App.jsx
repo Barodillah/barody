@@ -8,6 +8,7 @@ import {
     Cpu,
     MessageSquare,
     ChevronRight,
+    ChevronLeft,
     Github,
     Calendar,
     Zap,
@@ -527,7 +528,13 @@ const App = () => {
                                 desc: 'Membangun arsitektur Laravel yang scalable dengan optimasi database tingkat tinggi.',
                                 icon: <Code2 />,
                                 tag: 'Tech',
-                                color: 'text-cyan-400'
+                                color: 'text-cyan-400',
+                                action: !isLogic ? {
+                                    label: 'Back to My Introvert Side',
+                                    onClick: () => setMode('logic'),
+                                    iconLeft: <ChevronLeft size={14} />,
+                                    iconRight: <Terminal size={14} />
+                                } : null
                             },
                             {
                                 year: '2022 - Present',
@@ -536,7 +543,12 @@ const App = () => {
                                 desc: 'Memimpin tim untuk menjaga NPS di angka 90+ dan menangani krisis komunikasi pelanggan.',
                                 icon: <Users />,
                                 tag: 'Management',
-                                color: 'text-rose-500'
+                                color: 'text-rose-500',
+                                action: isLogic ? {
+                                    label: 'See My Extrovert Side',
+                                    onClick: () => setMode('satisfaction'),
+                                    icon: <Heart size={14} />
+                                } : null
                             },
                             {
                                 year: 'The Intersection',
@@ -553,6 +565,16 @@ const App = () => {
                                     <span className={`text-sm font-bold uppercase tracking-widest ${item.color}`}>{item.year}</span>
                                     <h3 className="text-2xl font-bold mt-2">{item.title}</h3>
                                     <p className="mt-4 opacity-70">{item.desc}</p>
+                                    {item.action && (
+                                        <button
+                                            onClick={item.action.onClick}
+                                            className={`mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full transition-all transform hover:scale-105 active:scale-95 ${item.color} border border-current ${item.color.includes('cyan') ? 'hover:bg-cyan-500/10' : 'hover:bg-rose-500/10'}`}
+                                        >
+                                            {item.action.iconLeft || item.action.icon}
+                                            {item.action.label}
+                                            {item.action.iconRight || <ChevronRight size={14} />}
+                                        </button>
+                                    )}
                                 </div>
 
                                 <div className={`z-10 w-12 h-12 rounded-full border-4 ${theme.bg} flex items-center justify-center shadow-xl ${item.color} ${item.side === 'center' ? 'md:mx-auto scale-150 mb-8 bg-amber-400/10 border-amber-400' : 'bg-slate-800 border-slate-700'}`}>
