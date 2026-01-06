@@ -186,15 +186,22 @@ GAYA BAHASA (SATISFACTION MODE):
 
             // Extract data from response
             let extractedData = {};
-            const dataMatch = assistantMessage.match(/\[DATA_EXTRACT\](.*?)\[\/DATA_EXTRACT\]/s);
+            // Try multiple patterns for DATA_EXTRACT tag
+            const dataMatch = assistantMessage.match(/\[DATA_EXTRACT\](.*?)\[\/DATA_EXTRACT\]/s)
+                || assistantMessage.match(/\[DATA_EXTRACT\]([\s\S]*?)\[\/DATA_EXTRACT\]/);
+
             if (dataMatch) {
                 try {
-                    extractedData = JSON.parse(dataMatch[1]);
+                    const rawJson = dataMatch[1].trim();
+                    extractedData = JSON.parse(rawJson);
+                    console.log('✅ Successfully parsed DATA_EXTRACT:', extractedData);
                     // Remove the data tag from visible message
-                    assistantMessage = assistantMessage.replace(/\[DATA_EXTRACT\].*?\[\/DATA_EXTRACT\]/s, '').trim();
+                    assistantMessage = assistantMessage.replace(/\[DATA_EXTRACT\][\s\S]*?\[\/DATA_EXTRACT\]/g, '').trim();
                 } catch (e) {
-                    console.error('Failed to parse extracted data:', e);
+                    console.error('❌ Failed to parse extracted data:', e, 'Raw:', dataMatch[1]);
                 }
+            } else {
+                console.warn('⚠️ No DATA_EXTRACT tag found in response');
             }
 
             console.log('📝 Extracted Data:', extractedData);
@@ -317,10 +324,14 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
             setCollectedData(prev => {
                 const updated = { ...prev };
                 Object.keys(extractedData).forEach(key => {
-                    if (extractedData[key] && extractedData[key].trim()) {
-                        updated[key] = extractedData[key].trim();
+                    // Only update if the new value is non-empty AND the key is valid
+                    const newValue = extractedData[key];
+                    if (newValue && typeof newValue === 'string' && newValue.trim() && requiredFields.includes(key)) {
+                        updated[key] = newValue.trim();
+                        console.log(`✅ Updated ${key}:`, updated[key]);
                     }
                 });
+                console.log('📊 Updated collectedData:', updated);
                 return updated;
             });
         }
