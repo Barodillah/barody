@@ -39,9 +39,15 @@ const ChatPage = () => {
     // Conversation history for API
     const [conversationHistory, setConversationHistory] = useState([]);
 
+    // Auto-close timer state
+    const [idleCountdown, setIdleCountdown] = useState(null); // null = not counting, number = seconds left
+    const idleTimerRef = useRef(null);
+    const countdownIntervalRef = useRef(null);
+
     // Required fields
     const requiredFields = ['nama', 'email', 'telepon', 'kebutuhan'];
     const completedFields = requiredFields.filter(field => collectedData[field]);
+    const allDataCollected = completedFields.length === requiredFields.length;
 
     // Fallback: Extract data directly from user message using regex patterns
     const extractDataFromUserMessage = (message) => {
@@ -556,6 +562,83 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
         }
     };
 
+    // Reset idle timer whenever user interacts
+    const resetIdleTimer = () => {
+        // Clear existing timers
+        if (idleTimerRef.current) {
+            clearTimeout(idleTimerRef.current);
+        }
+        if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current);
+        }
+        setIdleCountdown(null);
+    };
+
+    // Start idle timer when all data is collected
+    const startIdleTimer = () => {
+        resetIdleTimer();
+
+        // Start countdown after 10 seconds of inactivity (then 10 more seconds for countdown)
+        idleTimerRef.current = setTimeout(() => {
+            // Start the visible countdown from 10
+            setIdleCountdown(10);
+
+            countdownIntervalRef.current = setInterval(() => {
+                setIdleCountdown(prev => {
+                    if (prev <= 1) {
+                        // Time's up - auto close
+                        clearInterval(countdownIntervalRef.current);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }, 10000); // 10 seconds before showing countdown
+    };
+
+    // Auto-close when countdown reaches 0
+    useEffect(() => {
+        if (idleCountdown === 0 && !isComplete && allDataCollected) {
+            console.log('⏰ Auto-closing session due to inactivity');
+
+            // Send email with collected data
+            sendChatDataEmail(collectedData);
+
+            // Generate auto-close message
+            const autoCloseMessage = isLogic
+                ? `// ========== SESSION AUTO-CLOSED ==========\n> Nama: ${collectedData.nama}\n> Email: ${collectedData.email}\n> Telepon: ${collectedData.telepon}\n> Kebutuhan: ${collectedData.kebutuhan}\n// ==========================================\n> Session ditutup otomatis karena tidak ada aktivitas.\n> Tim kami akan menghubungi Anda segera.\n> Email konfirmasi telah dikirim ke ${collectedData.email}`
+                : `⏰ Waktu habis! Session ditutup otomatis.\n\n📋 **Data yang Terkumpul:**\n• Nama: ${collectedData.nama}\n• Email: ${collectedData.email}\n• Telepon: ${collectedData.telepon}\n• Kebutuhan: ${collectedData.kebutuhan}\n\nTerima kasih! Tim kami akan segera menghubungimu. 📧 Email konfirmasi sudah dikirim ke ${collectedData.email}. 💕`;
+
+            setMessages(prev => [...prev, {
+                type: 'bot',
+                text: autoCloseMessage,
+                timestamp: new Date()
+            }]);
+            setIsComplete(true);
+            setIdleCountdown(null);
+        }
+    }, [idleCountdown, isComplete, allDataCollected, collectedData, isLogic]);
+
+    // Start/reset idle timer when data collection status changes or user sends message
+    useEffect(() => {
+        if (allDataCollected && !isComplete) {
+            startIdleTimer();
+        } else {
+            resetIdleTimer();
+        }
+
+        return () => {
+            resetIdleTimer();
+        };
+    }, [allDataCollected, isComplete, messages.length]);
+
+    // Reset timer on input change (user is typing)
+    useEffect(() => {
+        if (inputValue && allDataCollected && !isComplete) {
+            resetIdleTimer();
+        }
+    }, [inputValue, allDataCollected, isComplete]);
+
     return (
         <div className={`min-h-screen flex flex-col chat-page-enter ${theme.bg} ${theme.text} ${theme.font}`} data-theme={mode}>
             {/* Header */}
@@ -576,7 +659,17 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
                                 <div>
                                     <h1 className="font-bold text-lg">BAROD.Y Assistant</h1>
                                     <p className={`text-xs ${theme.accent} flex items-center gap-1.5`}>
-                                        {isLogic ? '// Online | Ready to process' : (
+                                        {idleCountdown !== null && idleCountdown > 0 ? (
+                                            // Show countdown warning
+                                            <span className="animate-pulse">
+                                                {isLogic
+                                                    ? `// ⚠️ Auto-close in ${idleCountdown}s...`
+                                                    : `⏳ Ditutup dalam ${idleCountdown} detik...`
+                                                }
+                                            </span>
+                                        ) : isLogic ? (
+                                            '// Online | Ready to process'
+                                        ) : (
                                             <>
                                                 <span className="online-dot"></span>
                                                 Online | Siap membantu!
