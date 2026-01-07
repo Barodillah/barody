@@ -347,10 +347,41 @@ GAYA BAHASA (SATISFACTION MODE):
         startConversation();
     }, [isLogic]);
 
+    // Send collected data via email
+    const sendChatDataEmail = async (data) => {
+        try {
+            const response = await fetch('/api/send-chat-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    nama: data.nama,
+                    email: data.email,
+                    telepon: data.telepon,
+                    kebutuhan: data.kebutuhan,
+                    mode: mode
+                }),
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+                console.error('Failed to send email:', result.error);
+            } else {
+                console.log('✅ Emails sent successfully');
+            }
+        } catch (error) {
+            console.error('Email sending error:', error);
+        }
+    };
+
     // Check if all data is complete
     useEffect(() => {
         if (completedFields.length === requiredFields.length && !isComplete) {
             setIsComplete(true);
+
+            // Send email with collected data
+            sendChatDataEmail(collectedData);
 
             // Generate summary
             const summary = isLogic
@@ -360,7 +391,8 @@ GAYA BAHASA (SATISFACTION MODE):
 > Telepon: ${collectedData.telepon}
 > Kebutuhan: ${collectedData.kebutuhan}
 // =============================================
-> Terima kasih. Tim kami akan menghubungi Anda segera.`
+> Terima kasih. Tim kami akan menghubungi Anda segera.
+> Email konfirmasi telah dikirim ke ${collectedData.email}`
                 : `Yeay! Semua data sudah lengkap! 🎉
 
 📋 **Ringkasan Data:**
@@ -369,7 +401,9 @@ GAYA BAHASA (SATISFACTION MODE):
 • Telepon: ${collectedData.telepon}
 • Kebutuhan: ${collectedData.kebutuhan}
 
-Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih lanjut. Sampai jumpa! 💕`;
+Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih lanjut.
+
+📧 Kami juga sudah mengirimkan email konfirmasi ke ${collectedData.email}. Sampai jumpa! 💕`;
 
             setTimeout(() => {
                 setMessages(prev => [...prev, {
