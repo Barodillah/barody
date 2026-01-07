@@ -138,13 +138,38 @@ const App = () => {
 
     const isPhoneValid = phoneNumber.replace(/\D/g, '').length >= 9;
 
-    const handleCallSubmit = () => {
+    const handleCallSubmit = async () => {
         if (!isPhoneValid) return;
 
         setIsSubmitting(true);
 
-        // Simulate submission
-        setTimeout(() => {
+        try {
+            // Get time label from selected time
+            const selectedTimeSlot = timeSlots.find(slot => slot.id === selectedTime);
+            const timeLabel = selectedTimeSlot
+                ? `${selectedTimeSlot.label} (${selectedTimeSlot.time})`
+                : selectedTime;
+
+            // Send email via API
+            const response = await fetch('/api/send-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    phoneNumber: phoneNumber,
+                    selectedTime: selectedTime,
+                    timeLabel: timeLabel,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to send email');
+            }
+
+            // Success
             setIsSubmitting(false);
             setCallStep(3);
             setShowConfetti(true);
@@ -153,7 +178,12 @@ const App = () => {
             setTimeout(() => {
                 closeCallModal();
             }, 3000);
-        }, 1000);
+        } catch (error) {
+            console.error('Submit error:', error);
+            setIsSubmitting(false);
+            // Optionally show error to user
+            alert('Gagal mengirim request. Silakan coba lagi.');
+        }
     };
 
     // --- Background Particles (Anti-Gravity) Logic ---
