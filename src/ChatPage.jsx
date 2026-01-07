@@ -80,18 +80,54 @@ const ChatPage = () => {
             }
         }
 
-        // Kebutuhan pattern (longer sentences that aren't other data types)
-        if (!extracted.email && !extracted.telepon && !extracted.nama && message.length > 15) {
-            // If it's a longer message and doesn't match other patterns, might be kebutuhan
-            const kebutuhanPatterns = [
-                /(?:butuh|perlu|ingin|mau|pengen)\s+(.{10,})/i,
-                /(?:kebutuhan|masalah|kendala)\s*(?:saya|ku)?\s*(?:adalah)?\s*[:\-]?\s*(.{10,})/i
-            ];
-            for (const pattern of kebutuhanPatterns) {
-                const match = message.match(pattern);
-                if (match && match[1]) {
-                    extracted.kebutuhan = match[1].trim();
+        // Kebutuhan pattern - IMPROVED: detect needs/requirements regardless of other data
+        // Only skip kebutuhan extraction if we ONLY found other structured data (email/phone)
+        const kebutuhanPatterns = [
+            // Explicit kebutuhan phrases
+            /(?:butuh|perlu|ingin|mau|pengen|membutuhkan|memerlukan)\s+(.{10,})/i,
+            /(?:kebutuhan|masalah|kendala|problem)\s*(?:saya|ku|kami)?\s*(?:adalah|yaitu)?\s*[:\-]?\s*(.{10,})/i,
+            // Project/service related
+            /(?:buat|bikin|develop|kembangkan|bangun)\s*(?:kan)?\s+(.{10,})/i,
+            /(?:website|aplikasi|app|sistem|system|web|mobile|landing page)\s+(.{10,})/i,
+            // Looking for / asking about
+            /(?:cari|mencari|minta|tolong|bantu)\s+(.{10,})/i,
+            // Company profile, e-commerce, etc
+            /(?:company profile|toko online|e-commerce|ecommerce|portfolio|blog|cms)\s*(.{0,})/i,
+            // General long description (fallback for anything descriptive > 30 chars without other data patterns)
+        ];
+
+        for (const pattern of kebutuhanPatterns) {
+            const match = message.match(pattern);
+            if (match) {
+                // Use the captured group if available, otherwise use the match
+                const kebutuhanText = match[1] ? match[1].trim() : match[0].trim();
+                if (kebutuhanText.length >= 5) {
+                    extracted.kebutuhan = kebutuhanText;
+                    console.log('📝 Kebutuhan extracted via pattern:', kebutuhanText);
                     break;
+                }
+            }
+        }
+
+        // Fallback: If message is long (> 40 chars), descriptive, and doesn't look like just contact info
+        // treat it as potential kebutuhan
+        if (!extracted.kebutuhan && message.length > 40) {
+            // Check if the message is mostly about contact info or actually describes needs
+            const isJustContactInfo = (extracted.email || extracted.telepon) &&
+                message.replace(/[\w.-]+@[\w.-]+\.\w+/g, '').replace(/(?:\+62|62|0)[\s-]?\d{2,4}[\s-]?\d{3,4}[\s-]?\d{3,4}/g, '').trim().length < 20;
+
+            if (!isJustContactInfo) {
+                // Check for descriptive keywords that suggest this is about needs/requirements
+                const needsKeywords = ['website', 'aplikasi', 'sistem', 'toko', 'bisnis', 'usaha', 'project', 'proyek',
+                    'jasa', 'layanan', 'fitur', 'fungsi', 'halaman', 'page', 'design', 'desain', 'online',
+                    'mobile', 'app', 'web', 'landing', 'portfolio', 'blog', 'cms', 'dashboard', 'admin',
+                    'ecommerce', 'e-commerce', 'marketplace', 'booking', 'reservasi', 'order', 'pesanan'];
+
+                const hasNeedsKeyword = needsKeywords.some(keyword => lowerMsg.includes(keyword));
+
+                if (hasNeedsKeyword) {
+                    extracted.kebutuhan = message.trim();
+                    console.log('📝 Kebutuhan extracted via keyword fallback:', message);
                 }
             }
         }
