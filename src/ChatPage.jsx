@@ -36,6 +36,13 @@ const ChatPage = () => {
         kebutuhan: ''
     });
 
+    // Track kebutuhan discussion (need at least 2 exchanges before considering it complete)
+    const [kebutuhanDiscussion, setKebutuhanDiscussion] = useState({
+        mentionCount: 0,        // How many times user mentioned their needs
+        rawDetails: [],          // Raw user messages about needs
+        isConfirmed: false       // Whether AI has summarized and confirmed
+    });
+
     // Conversation history for API
     const [conversationHistory, setConversationHistory] = useState([]);
 
@@ -66,17 +73,37 @@ const ChatPage = () => {
             extracted.telepon = phoneMatch[0].replace(/[\s-]/g, '');
         }
 
-        // Name pattern (common phrases)
+        // Name pattern (common phrases) - with exclusions for common words
+        const excludedFromName = [
+            'butuh', 'perlu', 'ingin', 'mau', 'pengen', 'membutuhkan', 'memerlukan',
+            'buat', 'bikin', 'develop', 'bangun', 'kembangkan',
+            'website', 'aplikasi', 'app', 'sistem', 'system', 'web', 'mobile',
+            'cari', 'mencari', 'minta', 'tolong', 'bantu',
+            'company', 'profile', 'toko', 'online', 'ecommerce', 'portfolio', 'blog',
+            'halo', 'hai', 'hello', 'hi', 'selamat', 'pagi', 'siang', 'sore', 'malam',
+            'terima', 'kasih', 'thanks', 'thank', 'makasih',
+            'tidak', 'bukan', 'jangan', 'belum', 'sudah'
+        ];
+
         const namaPatterns = [
             /nama\s*(?:saya|ku|gw|gue|aku)?\s*(?:adalah)?\s*[:\-]?\s*([a-zA-Z\s]{2,30})/i,
-            /(?:saya|aku|nama)\s+([a-zA-Z]{2,20}(?:\s+[a-zA-Z]{2,20})?)/i,
-            /^([a-zA-Z]{2,20}(?:\s+[a-zA-Z]{2,20})?)$/i  // Just a name on its own
+            /(?:saya|aku)\s+([A-Z][a-zA-Z]{1,20}(?:\s+[A-Z][a-zA-Z]{1,20})?)/,  // Must start with capital
+            /^([A-Z][a-zA-Z]{1,20}(?:\s+[A-Z][a-zA-Z]{1,20})?)$/  // Just a capitalized name on its own
         ];
         for (const pattern of namaPatterns) {
             const match = message.match(pattern);
-            if (match && match[1] && !match[1].toLowerCase().includes('email') && !match[1].toLowerCase().includes('telepon')) {
-                extracted.nama = match[1].trim();
-                break;
+            if (match && match[1]) {
+                const potentialName = match[1].trim();
+                const lowerName = potentialName.toLowerCase();
+
+                // Check if any word in the potential name is an excluded word
+                const nameWords = lowerName.split(/\s+/);
+                const hasExcludedWord = nameWords.some(word => excludedFromName.includes(word));
+
+                if (!hasExcludedWord && !lowerName.includes('email') && !lowerName.includes('telepon')) {
+                    extracted.nama = potentialName;
+                    break;
+                }
             }
         }
 
@@ -201,6 +228,10 @@ const ChatPage = () => {
 
     // System prompt based on mode
     const getSystemPrompt = () => {
+        const kebutuhanStatus = kebutuhanDiscussion.mentionCount >= 2
+            ? 'SUDAH CUKUP - Buat rangkuman kebutuhan sekarang'
+            : `PERLU DETAIL LEBIH (${kebutuhanDiscussion.mentionCount}/2 pertanyaan) - Tanyakan lebih dalam`;
+
         const baseContext = `Kamu adalah asisten virtual BAROD.Y (Barod Yoedistira), seorang Hybrid Solution Architect yang menggabungkan dua dunia:
 
 **TENTANG BAROD YOEDISTIRA (Bos/Pemilik Kamu):**
@@ -223,25 +254,39 @@ Mengumpulkan 4 data penting dari calon klien/partner:
 1. Nama lengkap (nama)
 2. Email (email)  
 3. Nomor Telepon/WhatsApp (telepon)
-4. Kebutuhan/masalah (kebutuhan)
+4. Kebutuhan/masalah (kebutuhan) - PENTING: Tanyakan detail MINIMAL 2x sebelum merangkum!
 
 Data yang SUDAH terkumpul sejauh ini:
 ${JSON.stringify(collectedData, null, 2)}
+
+**STATUS KEBUTUHAN:** ${kebutuhanStatus}
+${kebutuhanDiscussion.rawDetails.length > 0 ? `Detail kebutuhan yang sudah disebutkan user:\n${kebutuhanDiscussion.rawDetails.map((d, i) => `${i + 1}. "${d}"`).join('\n')}` : ''}
 
 **INFORMASI LAYANAN (JIKA DITANYA):**
 - **Web Development:** Laravel, React, Vue.js, Node.js.
 - **System Optimization:** Menangani high-traffic, optimasi query, caching.
 - **Consulting:** Membangun tim CS, alur kerja CRM, dan solusi teknis yang manusiawi.
 
-**ATURAN EKSTRAKSI DATA:**
-- Ektrak data SETIAP KALI user memberikannya, meskipun dalam kalimat panjang.
-- Jika user bertanya tentang layanan, JELASKAN dengan detail sesuai profil di atas (sesuaikan dengan mode Logic/Satisfaction), lalu arahkan kembali ke pengumpulan data dengan halus.
+**ATURAN KEBUTUHAN (SANGAT PENTING!):**
+1. Saat user pertama kali menyebutkan kebutuhan, JANGAN langsung catat. Tanyakan detail lebih lanjut.
+   - Contoh follow-up: "Menarik! Bisa ceritakan lebih detail fitur apa saja yang dibutuhkan?", "Target pengguna aplikasinya siapa?", "Ada referensi atau contoh yang diinginkan?"
+2. Setelah MINIMAL 2 kali user menjelaskan kebutuhan, baru RANGKUM kebutuhan mereka dalam 1-2 kalimat yang jelas.
+3. Di field "kebutuhan" pada DATA_EXTRACT, isi dengan RANGKUMAN kamu, BUKAN copy-paste kata-kata user.
+   - Contoh rangkuman: "Website company profile dengan fitur portofolio dan contact form, target audience B2B"
+
+**ATURAN EKSTRAKSI DATA LAINNYA:**
+- Ektrak nama/email/telepon SETIAP KALI user memberikannya.
+- Jika user bertanya tentang layanan, JELASKAN dengan detail, lalu arahkan kembali ke pengumpulan data.
 - JANGAN tanya data yang sudah ada di "Data yang SUDAH terkumpul".
 
 **FORMAT RESPONSE:**
 Akhiri SETIAP response dengan tag JSON ini (wajib ada, jangan diubah formatnya):
-[DATA_EXTRACT]{"nama": "...", "email": "...", "telepon": "...", "kebutuhan": "..."}[/DATA_EXTRACT]
-*Isi field yang BARU saja didapat dari pesan terakhir user. Biarkan kosong ("") jika tidak ada data baru.*`;
+[DATA_EXTRACT]{"nama": "...", "email": "...", "telepon": "...", "kebutuhan": "...", "kebutuhan_mention": true/false}[/DATA_EXTRACT]
+*Catatan:*
+- Isi field yang BARU saja didapat. Biarkan kosong ("") jika tidak ada data baru.
+- "kebutuhan" hanya diisi dengan RANGKUMAN setelah min 2x diskusi kebutuhan.
+- "kebutuhan_mention": set true jika user menyebutkan apapun tentang kebutuhannya (untuk tracking).`
+            ;
 
         if (isLogic) {
             return `${baseContext}
@@ -538,6 +583,24 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
         const mergedExtracted = { ...fallbackExtracted, ...aiExtractedData };
         console.log('🔀 Merged extraction:', mergedExtracted);
 
+        // Track kebutuhan discussion (from AI's kebutuhan_mention flag OR if fallback detected kebutuhan-related content)
+        const userMentionedNeeds = aiExtractedData.kebutuhan_mention === true ||
+            aiExtractedData.kebutuhan_mention === 'true' ||
+            fallbackExtracted.kebutuhan;
+
+        if (userMentionedNeeds && !collectedData.kebutuhan) {
+            setKebutuhanDiscussion(prev => {
+                const newCount = prev.mentionCount + 1;
+                const newDetails = [...prev.rawDetails, userMessage];
+                console.log(`📝 Kebutuhan mention #${newCount}:`, userMessage);
+                return {
+                    mentionCount: newCount,
+                    rawDetails: newDetails.slice(-5), // Keep last 5 messages about needs
+                    isConfirmed: false
+                };
+            });
+        }
+
         // Calculate what the updated data would look like
         let updatedCollectedData = { ...collectedData };
         const hasNewData = Object.keys(mergedExtracted).some(
@@ -547,9 +610,20 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
         if (hasNewData) {
             Object.keys(mergedExtracted).forEach(key => {
                 const newValue = mergedExtracted[key];
+                // Skip kebutuhan_mention as it's not part of collected data
+                if (key === 'kebutuhan_mention') return;
+
                 if (newValue && typeof newValue === 'string' && newValue.trim() && requiredFields.includes(key) && !collectedData[key]) {
                     updatedCollectedData[key] = newValue.trim();
                     console.log(`✅ Updated ${key}:`, updatedCollectedData[key]);
+
+                    // If kebutuhan was set by AI, mark discussion as confirmed
+                    if (key === 'kebutuhan') {
+                        setKebutuhanDiscussion(prev => ({
+                            ...prev,
+                            isConfirmed: true
+                        }));
+                    }
                 }
             });
             console.log('📊 Updated collectedData:', updatedCollectedData);
