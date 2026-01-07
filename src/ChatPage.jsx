@@ -96,25 +96,45 @@ const ChatPage = () => {
     // Detect end-of-conversation phrases
     const isEndOfConversation = (message) => {
         const lowerMsg = message.toLowerCase().trim();
-        const endPhrases = [
-            'cukup', 'sudah cukup', 'cukup sekian',
-            'selesai', 'sudah selesai',
+
+        // Strong end phrases - always indicate end of conversation
+        const strongEndPhrases = [
             'terima kasih', 'makasih', 'thanks', 'thank you', 'thx',
             'oke terima kasih', 'ok terima kasih', 'oke thanks', 'ok thanks',
-            'sampai jumpa', 'bye', 'goodbye', 'dadah', 'dah',
-            'tidak ada lagi', 'sudah itu saja', 'itu saja', 'itu aja',
             'sudah cukup terima kasih', 'cukup terima kasih',
-            'tidak', 'no', 'nope', 'nggak', 'ga', 'gak', 'engga', 'enggak'
+            'sampai jumpa', 'bye', 'goodbye', 'dadah',
+            'sudah itu saja', 'itu saja', 'itu aja', 'tidak ada lagi',
+            'cukup sekian', 'sudah selesai'
         ];
 
-        // Check if message matches any end phrase (exact or contains)
-        return endPhrases.some(phrase => {
-            // Exact match or message is very short with end keyword
+        // Weak end phrases - only count as end if message is short (could be ambiguous in longer messages)
+        const weakEndPhrases = [
+            'cukup', 'selesai', 'sudah cukup',
+            'tidak', 'no', 'nope', 'nggak', 'ga', 'gak', 'engga', 'enggak', 'dah'
+        ];
+
+        // Check if message CONTAINS any strong end phrase (works for any message length)
+        const hasStrongEndPhrase = strongEndPhrases.some(phrase => lowerMsg.includes(phrase));
+        if (hasStrongEndPhrase) {
+            console.log('🔚 Strong end phrase detected in message');
+            return true;
+        }
+
+        // For weak phrases, only match if:
+        // 1. Exact match, OR
+        // 2. Message is short (< 30 chars) and contains the phrase
+        const hasWeakEndPhrase = weakEndPhrases.some(phrase => {
             if (lowerMsg === phrase) return true;
-            // For very short messages (< 20 chars), check if contains end phrase
-            if (lowerMsg.length < 20 && lowerMsg.includes(phrase)) return true;
+            if (lowerMsg.length < 30 && lowerMsg.includes(phrase)) return true;
             return false;
         });
+
+        if (hasWeakEndPhrase) {
+            console.log('🔚 Weak end phrase detected in short message');
+            return true;
+        }
+
+        return false;
     };
 
     // Theme styles
