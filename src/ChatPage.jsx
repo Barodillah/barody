@@ -424,9 +424,12 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
         setInputValue('');
         setSuggestedQuestions([]); // Clear suggestions after sending
 
-        // Check if all data is collected AND user wants to end conversation
-        const allDataCollected = requiredFields.every(field => collectedData[field]);
-        if (allDataCollected && isEndOfConversation(userMessage)) {
+        // Pre-check: Detect end phrase in the current message for later use
+        const messageContainsEndPhrase = isEndOfConversation(userMessage);
+
+        // Check if all data is ALREADY collected AND user wants to end conversation
+        const allDataAlreadyCollected = requiredFields.every(field => collectedData[field]);
+        if (allDataAlreadyCollected && messageContainsEndPhrase) {
             // Add user's closing message
             setMessages(prev => [...prev, {
                 type: 'user',
@@ -434,10 +437,13 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
                 timestamp: new Date()
             }]);
 
+            // Send email before closing
+            sendChatDataEmail(collectedData);
+
             // Generate closing response and set complete
             const closingMessage = isLogic
-                ? `// Session terminated by user request.\n> Terima kasih telah menggunakan sistem kami.\n> Tim kami akan menghubungi Anda segera melalui ${collectedData.email || collectedData.telepon}.`
-                : `Terima kasih banyak ${collectedData.nama}! 💕\n\nSenang bisa mengobrol denganmu. Tim kami akan segera menghubungimu untuk diskusi lebih lanjut.\n\nSampai jumpa! 👋😊`;
+                ? `// Session terminated by user request.\n> Terima kasih telah menggunakan sistem kami.\n> Tim kami akan menghubungi Anda segera melalui ${collectedData.email || collectedData.telepon}.\n> Email konfirmasi telah dikirim ke ${collectedData.email}`
+                : `Terima kasih banyak ${collectedData.nama}! 💕\n\nSenang bisa mengobrol denganmu. Tim kami akan segera menghubungimu untuk diskusi lebih lanjut.\n\n📧 Kami juga sudah mengirimkan email konfirmasi ke ${collectedData.email}. Sampai jumpa! 👋😊`;
 
             setTimeout(() => {
                 setMessages(prev => [...prev, {
@@ -470,28 +476,51 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
         const mergedExtracted = { ...fallbackExtracted, ...aiExtractedData };
         console.log('🔀 Merged extraction:', mergedExtracted);
 
-        // Update collected data with any extracted info
+        // Calculate what the updated data would look like
+        let updatedCollectedData = { ...collectedData };
         const hasNewData = Object.keys(mergedExtracted).some(
             key => mergedExtracted[key] && typeof mergedExtracted[key] === 'string' && mergedExtracted[key].trim()
         );
 
         if (hasNewData) {
-            setCollectedData(prev => {
-                const updated = { ...prev };
-                Object.keys(mergedExtracted).forEach(key => {
-                    // Only update if the new value is non-empty AND the key is valid AND we don't already have this data
-                    const newValue = mergedExtracted[key];
-                    if (newValue && typeof newValue === 'string' && newValue.trim() && requiredFields.includes(key) && !prev[key]) {
-                        updated[key] = newValue.trim();
-                        console.log(`✅ Updated ${key}:`, updated[key]);
-                    }
-                });
-                console.log('📊 Updated collectedData:', updated);
-                return updated;
+            Object.keys(mergedExtracted).forEach(key => {
+                const newValue = mergedExtracted[key];
+                if (newValue && typeof newValue === 'string' && newValue.trim() && requiredFields.includes(key) && !collectedData[key]) {
+                    updatedCollectedData[key] = newValue.trim();
+                    console.log(`✅ Updated ${key}:`, updatedCollectedData[key]);
+                }
             });
+            console.log('📊 Updated collectedData:', updatedCollectedData);
+
+            // Update state
+            setCollectedData(updatedCollectedData);
         }
 
-        // Add bot response
+        // Check if ALL data is now complete AFTER extraction AND the message contained an end phrase
+        const allDataNowComplete = requiredFields.every(field => updatedCollectedData[field]);
+
+        if (allDataNowComplete && messageContainsEndPhrase) {
+            console.log('🎯 All data collected AND end phrase detected - closing session');
+
+            // Send email with the newly complete data
+            sendChatDataEmail(updatedCollectedData);
+
+            // Generate closing response
+            const closingMessage = isLogic
+                ? `// ========== DATA COLLECTION COMPLETE ==========\n> Nama: ${updatedCollectedData.nama}\n> Email: ${updatedCollectedData.email}\n> Telepon: ${updatedCollectedData.telepon}\n> Kebutuhan: ${updatedCollectedData.kebutuhan}\n// =============================================\n> Terima kasih. Tim kami akan menghubungi Anda segera.\n> Email konfirmasi telah dikirim ke ${updatedCollectedData.email}`
+                : `Yeay! Semua data sudah lengkap! 🎉\n\n📋 **Ringkasan Data:**\n• Nama: ${updatedCollectedData.nama}\n• Email: ${updatedCollectedData.email}\n• Telepon: ${updatedCollectedData.telepon}\n• Kebutuhan: ${updatedCollectedData.kebutuhan}\n\nTerima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih lanjut.\n\n📧 Kami juga sudah mengirimkan email konfirmasi ke ${updatedCollectedData.email}. Sampai jumpa! 💕`;
+
+            setMessages(prev => [...prev, {
+                type: 'bot',
+                text: closingMessage,
+                timestamp: new Date()
+            }]);
+            setIsTyping(false);
+            setIsComplete(true);
+            return; // Exit early, don't show AI response
+        }
+
+        // Add bot response (normal flow)
         setMessages(prev => [...prev, {
             type: 'bot',
             text: message,
