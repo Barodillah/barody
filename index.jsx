@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Code2, 
-  Heart, 
-  Terminal, 
-  Users, 
-  Cpu, 
-  MessageSquare, 
-  ChevronRight, 
-  Github, 
-  Calendar, 
-  Zap, 
-  Search, 
-  Layers, 
-  Repeat 
+import {
+  Code2,
+  Heart,
+  Terminal,
+  Users,
+  Cpu,
+  MessageSquare,
+  ChevronRight,
+  Github,
+  Calendar,
+  Zap,
+  Search,
+  Layers,
+  Repeat
 } from 'lucide-react';
 
 const App = () => {
@@ -20,16 +20,16 @@ const App = () => {
   const [mode, setMode] = useState('logic');
   const [scrolled, setScrolled] = useState(false);
   const [timelineProgress, setTimelineProgress] = useState(0);
-  
+
   // Typewriter state for "ision."
   const [typewriterText, setTypewriterText] = useState("");
   const fullText = "ision.";
-  
+
   // Balloon Physics & Animation State
   const [balloonPos, setBalloonPos] = useState({ x: 0, y: -80 });
   const [showBalloon, setShowBalloon] = useState(false);
   const dotRef = useRef(null);
-  
+
   const timelineRef = useRef(null);
   const canvasRef = useRef(null);
   const mouseRef = useRef({ x: null, y: null, radius: 150 });
@@ -100,7 +100,7 @@ const App = () => {
       particlesArray = [];
       const numberOfParticles = (canvas.width * canvas.height) / 9000;
       const color = mode === 'logic' ? 'rgba(34, 211, 238, 0.4)' : 'rgba(244, 63, 94, 0.4)';
-      
+
       for (let i = 0; i < numberOfParticles; i++) {
         let x = Math.random() * canvas.width;
         let y = Math.random() * canvas.height;
@@ -120,20 +120,20 @@ const App = () => {
     const handleMouseMove = (e) => {
       mouseRef.current.x = e.x;
       mouseRef.current.y = e.y;
-      
+
       // Balloon Physics Calculation
       if (mode === 'satisfaction' && dotRef.current) {
         const rect = dotRef.current.getBoundingClientRect();
         const dotCenterX = rect.left + rect.width / 2;
         const dotCenterY = rect.top + rect.height / 2;
-        
+
         let targetX = e.clientX - dotCenterX;
         let targetY = e.clientY - dotCenterY;
-        
+
         // Constraint: Maximum String Length
         const maxLen = 130;
         const dist = Math.sqrt(targetX * targetX + targetY * targetY);
-        
+
         if (dist > maxLen) {
           targetX = (targetX / dist) * maxLen;
           targetY = (targetY / dist) * maxLen;
@@ -163,7 +163,7 @@ const App = () => {
       setTypewriterText("");
       setShowBalloon(false); // Reset balloon
       let currentIdx = 0;
-      
+
       const type = () => {
         if (currentIdx < fullText.length) {
           setTypewriterText(fullText.substring(0, currentIdx + 1));
@@ -175,12 +175,12 @@ const App = () => {
       const timeoutId = setTimeout(type, 800);
       return () => clearTimeout(timeoutId);
     } else {
-        // Satisfaction Mode: Show Balloon with delay
-        setBalloonPos({ x: 0, y: -90 });
-        const balloonTimeout = setTimeout(() => {
-          setShowBalloon(true);
-        }, 800); // 800ms delay before balloon starts inflating
-        return () => clearTimeout(balloonTimeout);
+      // Satisfaction Mode: Show Balloon with delay
+      setBalloonPos({ x: 0, y: -90 });
+      const balloonTimeout = setTimeout(() => {
+        setShowBalloon(true);
+      }, 800); // 800ms delay before balloon starts inflating
+      return () => clearTimeout(balloonTimeout);
     }
   }, [mode]);
 
@@ -195,7 +195,7 @@ const App = () => {
         setTimelineProgress(progress);
       }
     };
-    
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -215,10 +215,10 @@ const App = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-700 ${theme.bg} ${theme.text} ${theme.font} relative`}>
-      
+
       {/* --- Background Canvas for Anti-Gravity Particles --- */}
-      <canvas 
-        ref={canvasRef} 
+      <canvas
+        ref={canvasRef}
         className="fixed inset-0 z-0 pointer-events-none opacity-60"
       />
 
@@ -229,17 +229,17 @@ const App = () => {
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isLogic ? 'bg-cyan-500/20 text-cyan-400' : 'bg-rose-500/10 text-rose-500'}`}>
               {isLogic ? <Terminal size={24} /> : <Heart size={24} />}
             </div>
-            <span className="font-bold text-xl tracking-tighter">BAROD.Y</span>
+            <span className="font-bold text-xl tracking-tighter">BEWHY.ID</span>
           </div>
 
           <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-full p-1 border border-slate-500/20 relative z-50">
-            <button 
+            <button
               onClick={() => setMode('logic')}
               className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${isLogic ? 'bg-cyan-500 text-white shadow-lg' : 'text-slate-400 opacity-60'}`}
             >
               <Code2 size={16} /> <span className="hidden sm:inline text-xs font-bold uppercase tracking-widest">Logic</span>
             </button>
-            <button 
+            <button
               onClick={() => setMode('satisfaction')}
               className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${!isLogic ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-400 opacity-60'}`}
             >
@@ -252,13 +252,13 @@ const App = () => {
       {/* --- Hero Section --- */}
       <header className="relative pt-32 pb-20 overflow-hidden z-10">
         <div className={`absolute top-0 right-0 w-1/2 h-full opacity-10 blur-3xl rounded-full transition-colors duration-1000 ${isLogic ? 'bg-cyan-500' : 'bg-rose-500 animate-pulse'}`}></div>
-        
+
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-4xl">
             <div className={`inline-block px-3 py-1 rounded-full mb-6 text-xs font-bold uppercase tracking-[0.2em] border ${isLogic ? 'border-cyan-500/30 text-cyan-400 bg-cyan-500/5' : 'border-rose-500/30 text-rose-500 bg-rose-500/5'}`}>
               {isLogic ? "// mode.active = 'logic_excellence'" : "👋 Mode: Human Empathy Active"}
             </div>
-            
+
             <h1 className={`text-5xl md:text-8xl font-black mb-8 leading-[1.1] transition-all duration-500 ${isLogic ? 'tracking-tight' : 'tracking-normal'}`}>
               {isLogic ? (
                 <div className="flex flex-col">
@@ -278,16 +278,16 @@ const App = () => {
                   <span className="text-rose-500 italic mt-2">Menciptakan</span>
                   <div className="mt-2 flex items-center relative">
                     <span className="text-rose-500 italic">Senyuman</span>
-                    
+
                     {/* --- Interactive Dot & Magnet Balloon --- */}
                     <div className="relative inline-flex items-center ml-0.5">
                       <span ref={dotRef} className="text-rose-500 font-black">.</span>
-                      
+
                       {/* Balloon Pivot (locked to dot) */}
                       {showBalloon && (
-                        <div 
+                        <div
                           className="absolute pointer-events-none transition-transform duration-300 ease-out animate-inflate-balloon"
-                          style={{ 
+                          style={{
                             transform: `translate(${balloonPos.x}px, ${balloonPos.y}px)`,
                             left: '50%',
                             top: '50%'
@@ -295,19 +295,19 @@ const App = () => {
                         >
                           <div className="relative flex flex-col items-center">
                             {/* Dynamic String SVG linking Dot to Balloon */}
-                            <svg 
+                            <svg
                               className="absolute top-[100%] left-1/2 -translate-x-1/2 overflow-visible"
                               width="100" height="200"
                             >
-                              <path 
-                                  d={`M 50 0 Q ${50 - balloonPos.x/3} ${-balloonPos.y/2} ${50 - balloonPos.x} ${-balloonPos.y}`}
-                                  fill="none" 
-                                  stroke="rgba(244, 63, 94, 0.4)" 
-                                  strokeWidth="1.5"
-                                  strokeDasharray="4 2"
+                              <path
+                                d={`M 50 0 Q ${50 - balloonPos.x / 3} ${-balloonPos.y / 2} ${50 - balloonPos.x} ${-balloonPos.y}`}
+                                fill="none"
+                                stroke="rgba(244, 63, 94, 0.4)"
+                                strokeWidth="1.5"
+                                strokeDasharray="4 2"
                               />
                             </svg>
-                            
+
                             {/* The Floating Emoji Balloon */}
                             <div className="text-6xl select-none animate-float-balloon drop-shadow-2xl">
                               😊
@@ -322,9 +322,9 @@ const App = () => {
             </h1>
 
             <p className={`text-xl md:text-2xl max-w-2xl mb-12 leading-relaxed opacity-80 ${isLogic ? 'font-light' : 'font-medium italic'}`}>
-              {isLogic 
+              {isLogic
                 ? "Saya Barod Yoedhistira. Developer yang memahami algoritma secara mendalam untuk performa sistem yang tak tertandingi."
-                : "Halo, saya Barod. Mantan CS Manager yang kini menulis kode untuk menyelesaikan masalah nyata manusia, bukan sekadar bug."
+                : "Halo, saya Barod. CS Manager yang kini menulis kode untuk menyelesaikan masalah nyata manusia, bukan sekadar bug."
               }
             </p>
 
@@ -345,13 +345,13 @@ const App = () => {
       <section ref={timelineRef} className="py-24 border-y border-slate-500/10 relative overflow-hidden z-10">
         <div className="container mx-auto px-6">
           <h2 className="text-3xl font-bold mb-16 text-center">Jejak Karir & <span className={theme.accent}>Dualitas Keahlian</span></h2>
-          
+
           <div className="relative max-w-5xl mx-auto">
             {/* Center Line */}
             <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-500/20 hidden md:block"></div>
-            
+
             {/* Scroll Particle (Follows for both modes) */}
-            <div 
+            <div
               className={`absolute left-1/2 -ml-[3px] w-[7px] h-20 bg-gradient-to-b from-transparent ${theme.accentGradient} to-transparent z-0 blur-[2px] hidden md:block`}
               style={{ top: `${timelineProgress * 100}%`, transition: 'top 0.15s ease-out' }}
             >
@@ -400,13 +400,13 @@ const App = () => {
                 </div>
 
                 <div className={`w-full md:w-1/2 p-4 ${item.side === 'center' ? 'text-center block md:px-20' : 'hidden md:block opacity-0'}`}>
-                   {item.side === 'center' && (
-                     <>
-                        <span className={`text-sm font-bold uppercase tracking-widest ${item.color}`}>{item.year}</span>
-                        <h3 className="text-3xl font-black mt-2">{item.title}</h3>
-                        <p className="mt-4 text-lg opacity-80">{item.desc}</p>
-                     </>
-                   )}
+                  {item.side === 'center' && (
+                    <>
+                      <span className={`text-sm font-bold uppercase tracking-widest ${item.color}`}>{item.year}</span>
+                      <h3 className="text-3xl font-black mt-2">{item.title}</h3>
+                      <p className="mt-4 text-lg opacity-80">{item.desc}</p>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
@@ -421,12 +421,12 @@ const App = () => {
             <div className="md:w-1/2">
               <h2 className="text-4xl font-bold mb-8 leading-tight">Metodologi:<br />"Satisfaction-Driven Development"</h2>
               <p className="text-lg opacity-70 mb-10 italic">
-                {isLogic 
+                {isLogic
                   ? "Arsitektur yang bersih adalah kunci kepuasan developer dan stabilitas jangka panjang."
                   : "Mendengarkan adalah langkah pertama dari penulisan kode. Baris pertama bukan 'print' tapi 'pahami'."
                 }
               </p>
-              
+
               <div className="space-y-6">
                 {[
                   { icon: <Search />, title: "Empathy Mapping", desc: "Menganalisis titik frustrasi user sebelum mulai mendesain solusi teknis." },
@@ -447,19 +447,19 @@ const App = () => {
             </div>
 
             <div className="md:w-1/2 relative">
-               <div className={`aspect-square rounded-full border-2 border-dashed flex items-center justify-center p-12 transition-all duration-1000 ${isLogic ? 'rotate-90 border-cyan-500/20' : 'rotate-0 border-rose-500/20'}`}>
-                  <div className={`w-full h-full rounded-full border-4 flex items-center justify-center transition-all duration-700 ${isLogic ? 'border-cyan-500 shadow-[0_0_50px_rgba(34,211,238,0.2)]' : 'border-rose-500 shadow-[0_0_50px_rgba(244,63,94,0.2)]'}`}>
-                     <div className="text-center p-8">
-                        <span className="block text-6xl mb-4">
-                          {isLogic ? "0101" : "😊"}
-                        </span>
-                        <p className="font-bold uppercase tracking-widest text-xs opacity-50">Core Philosophy</p>
-                        <p className="text-lg font-bold">
-                          {isLogic ? "Performance is Reliability" : "Ease of Use is Respect"}
-                        </p>
-                     </div>
+              <div className={`aspect-square rounded-full border-2 border-dashed flex items-center justify-center p-12 transition-all duration-1000 ${isLogic ? 'rotate-90 border-cyan-500/20' : 'rotate-0 border-rose-500/20'}`}>
+                <div className={`w-full h-full rounded-full border-4 flex items-center justify-center transition-all duration-700 ${isLogic ? 'border-cyan-500 shadow-[0_0_50px_rgba(34,211,238,0.2)]' : 'border-rose-500 shadow-[0_0_50px_rgba(244,63,94,0.2)]'}`}>
+                  <div className="text-center p-8">
+                    <span className="block text-6xl mb-4">
+                      {isLogic ? "0101" : "😊"}
+                    </span>
+                    <p className="font-bold uppercase tracking-widest text-xs opacity-50">Core Philosophy</p>
+                    <p className="text-lg font-bold">
+                      {isLogic ? "Performance is Reliability" : "Ease of Use is Respect"}
+                    </p>
                   </div>
-               </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -474,7 +474,7 @@ const App = () => {
               <p className="opacity-60">Proyek pilihan dengan keseimbangan fungsi dan perasaan.</p>
             </div>
             <div className={`hidden md:flex gap-2 text-sm ${theme.accent}`}>
-               <span className="font-bold">Total Satisfaction Index: 9.8/10</span>
+              <span className="font-bold">Total Satisfaction Index: 9.8/10</span>
             </div>
           </div>
 
@@ -503,7 +503,7 @@ const App = () => {
                     ))}
                   </div>
                   <h3 className="text-2xl font-bold mb-6">{proj.title}</h3>
-                  
+
                   <div className="space-y-4 mb-8">
                     <div className="flex gap-3">
                       <div className="text-slate-500 flex-shrink-0 mt-1 font-bold text-xs">CHL:</div>
@@ -538,7 +538,7 @@ const App = () => {
         <div className="container mx-auto px-6 text-center">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-4xl md:text-6xl font-black mb-8 leading-tight">
-              {isLogic 
+              {isLogic
                 ? "Let's Optimize Your Digital Logic."
                 : "Ayo Bangun Pengalaman yang Bermakna."
               }
@@ -566,11 +566,11 @@ const App = () => {
             </div>
 
             <div className="border-t border-slate-500/10 pt-12 flex flex-col md:flex-row justify-between items-center gap-6 opacity-50 text-sm">
-              <p>© 2024 Barod Yoedhistira. Logic-Empathy Framework v2.5</p>
+              <p>© {new Date().getFullYear()} Barod Yoedhistira. Logic-Empathy Framework v2.5</p>
               <div className="flex gap-8">
-                <a href="#" className="hover:text-cyan-400">LinkedIn</a>
-                <a href="#" className="hover:text-cyan-400">Twitter</a>
-                <a href="#" className="hover:text-cyan-400">Email</a>
+                <a href="https://www.linkedin.com/in/barod-abdillah-284509169/" className="hover:text-cyan-400">LinkedIn</a>
+                <a href="https://x.com/barodillah" className="hover:text-cyan-400">X</a>
+                <a href="https://www.instagram.com/barodillah/" className="hover:text-cyan-400">Instagram</a>
               </div>
             </div>
           </div>
@@ -578,7 +578,8 @@ const App = () => {
       </footer>
 
       {/* Custom Global Styles for transitions */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,700;0,800;1,400&display=swap');
         
         body {

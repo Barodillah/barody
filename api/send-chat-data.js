@@ -37,7 +37,7 @@ export default async function handler(req, res) {
 
         // Email 1: Notification to Admin
         const adminMailOptions = {
-            from: `"BAROD.Y Website" <${process.env.MAIL_FROM_ADDRESS || 'noreply@cuma.click'}>`,
+            from: `"BEWHY.ID Website" <${process.env.MAIL_FROM_ADDRESS || 'noreply@cuma.click'}>`,
             to: 'barodabdillah313@gmail.com',
             subject: `🤖 New Chat Lead: ${nama}`,
             html: `
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
                         </div>
 
                         <div style="margin-top: 16px; text-align: center;">
-                            <a href="https://wa.me/${telepon.replace(/\D/g, '')}?text=Halo%20${encodeURIComponent(nama)},%20terima%20kasih%20sudah%20menghubungi%20BAROD.Y!" 
+                            <a href="https://wa.me/${telepon.replace(/\D/g, '')}?text=Halo%20${encodeURIComponent(nama)},%20terima%20kasih%20sudah%20menghubungi%20BEWHY.ID!" 
                                style="display: inline-block; background: #22c55e; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-right: 8px;">
                                 💬 Chat via WhatsApp
                             </a>
@@ -108,7 +108,7 @@ export default async function handler(req, res) {
                     </div>
                     
                     <p style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 20px;">
-                        This lead was collected from BAROD.Y AI Assistant
+                        This lead was collected from BEWHY.ID AI Assistant
                     </p>
                 </div>
             `,
@@ -118,7 +118,7 @@ export default async function handler(req, res) {
         const clientMailOptions = {
             from: `"Barod Yoedistira" <${process.env.MAIL_FROM_ADDRESS || 'noreply@cuma.click'}>`,
             to: email,
-            subject: '🙏 Terima Kasih Telah Menghubungi BAROD.Y!',
+            subject: '🙏 Terima Kasih Telah Menghubungi BEWHY.ID!',
             html: `
                 <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                     <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 40px 30px; border-radius: 16px 16px 0 0; text-align: center;">
@@ -132,7 +132,7 @@ export default async function handler(req, res) {
                         </p>
                         
                         <p style="color: #334155; font-size: 16px; line-height: 1.8; margin: 0 0 20px 0;">
-                            Terima kasih sudah menghubungi <strong>BAROD.Y</strong>! 🙏
+                            Terima kasih sudah menghubungi <strong>BEWHY.ID</strong>! 🙏
                         </p>
                         
                         <p style="color: #334155; font-size: 16px; line-height: 1.8; margin: 0 0 20px 0;">
@@ -173,7 +173,7 @@ export default async function handler(req, res) {
                     </div>
                     
                     <p style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 20px;">
-                        Email ini dikirim otomatis dari sistem BAROD.Y
+                        Email ini dikirim otomatis dari sistem BEWHY.ID
                     </p>
                 </div>
             `,

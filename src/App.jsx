@@ -151,7 +151,7 @@ const App = () => {
                 : selectedTime;
 
             // Send email via API
-            const response = await fetch('/api/send-email', {
+            const response = await fetch('/api/send-email.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -491,7 +491,7 @@ const App = () => {
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isLogic ? 'bg-cyan-500/20 text-cyan-400' : 'bg-rose-500/10 text-rose-500'}`}>
                             {isLogic ? <Terminal size={24} /> : <Heart size={24} />}
                         </div>
-                        <span className="font-bold text-xl tracking-tighter">BAROD.Y</span>
+                        <span className="font-bold text-xl tracking-tighter">BEWHY.ID</span>
                     </div>
 
                     <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-full p-1 border border-slate-500/20 relative z-50">
@@ -965,8 +965,8 @@ const App = () => {
                             <p>© {new Date().getFullYear()} Barod Yoedhistira. Logic-Empathy Framework v2.5</p>
                             <div className="flex gap-8">
                                 <a href="https://www.linkedin.com/in/barod-abdillah-284509169/" target="_blank" className="hover:text-cyan-400 transition-colors">LinkedIn</a>
-                                <a href="https://x.com/barodillah" target="_blank" className="hover:text-cyan-400 transition-colors">Twitter</a>
-                                <a href="mailto:gmail@cuma.click" target="_blank" className="hover:text-cyan-400 transition-colors">Email</a>
+                                <a href="https://www.instagram.com/barodillah/" target="_blank" className="hover:text-cyan-400 transition-colors">Instagram</a>
+                                <a href="mailto:gmail@bewhy.id" target="_blank" className="hover:text-cyan-400 transition-colors">Email</a>
                             </div>
                         </div>
                     </div>

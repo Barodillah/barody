@@ -32,7 +32,7 @@ export default async function handler(req, res) {
 
         // Email content
         const mailOptions = {
-            from: `"BAROD.Y Website" <${process.env.MAIL_FROM_ADDRESS || 'noreply@cuma.click'}>`,
+            from: `"BEWHY.ID Website" <${process.env.MAIL_FROM_ADDRESS || 'noreply@cuma.click'}>`,
             to: 'barodabdillah313@gmail.com',
             subject: '🚀 New Strategy Call Request',
             html: `
@@ -86,7 +86,7 @@ export default async function handler(req, res) {
                     </div>
                     
                     <p style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 20px;">
-                        This email was sent from BAROD.Y Portfolio Website
+                        This email was sent from BEWHY.ID Portfolio Website
                     </p>
                 </div>
             `,
