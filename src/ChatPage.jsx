@@ -835,40 +835,44 @@ Terima kasih banyak ya! Tim kami akan segera menghubungimu untuk diskusi lebih l
                                 <div className={`px-4 py-3 rounded-2xl border ${msg.type === 'user' ? theme.userBubble : theme.botBubble
                                     } ${msg.type === 'user' ? 'rounded-tr-sm' : 'rounded-tl-sm'}`}>
                                     <div className={`text-sm md:text-base leading-relaxed ${isLogic && msg.type === 'bot' ? 'font-mono' : ''}`}>
-                                        <ReactMarkdown
-                                            remarkPlugins={[remarkGfm]}
-                                            components={{
-                                                p: ({ node, ...props }) => <p className="mb-2 last:mb-0 whitespace-pre-wrap break-words" {...props} />,
-                                                a: ({ node, ...props }) => <a className="text-blue-500 hover:text-blue-600 underline" target="_blank" rel="noopener noreferrer" {...props} />,
-                                                strong: ({ node, ...props }) => <strong className="font-bold" {...props} />,
-                                                em: ({ node, ...props }) => <em className="italic" {...props} />,
-                                                del: ({ node, ...props }) => <del className="line-through" {...props} />,
-                                                code: ({ node, inline, ...props }) =>
-                                                    inline ? (
-                                                        <code className="bg-black/10 dark:bg-white/10 rounded px-1.5 py-0.5 text-sm font-mono" {...props} />
-                                                    ) : (
-                                                        <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 my-2 overflow-x-auto text-cyan-400 font-mono text-sm shadow-inner">
-                                                            <code {...props} />
-                                                        </div>
+                                        {isLogic ? (
+                                            <div className="whitespace-pre-wrap break-words">{msg.text}</div>
+                                        ) : (
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkGfm]}
+                                                components={{
+                                                    p: ({ node, ...props }) => <p className="mb-2 last:mb-0 whitespace-pre-wrap break-words" {...props} />,
+                                                    a: ({ node, ...props }) => <a className="text-blue-500 hover:text-blue-600 underline" target="_blank" rel="noopener noreferrer" {...props} />,
+                                                    strong: ({ node, ...props }) => <strong className="font-bold" {...props} />,
+                                                    em: ({ node, ...props }) => <em className="italic" {...props} />,
+                                                    del: ({ node, ...props }) => <del className="line-through" {...props} />,
+                                                    code: ({ node, inline, ...props }) =>
+                                                        inline ? (
+                                                            <code className="bg-black/10 dark:bg-white/10 rounded px-1.5 py-0.5 text-sm font-mono" {...props} />
+                                                        ) : (
+                                                            <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 my-2 overflow-x-auto text-cyan-400 font-mono text-sm shadow-inner">
+                                                                <code {...props} />
+                                                            </div>
+                                                        ),
+                                                    blockquote: ({ node, ...props }) => (
+                                                        <blockquote className="border-l-4 border-gray-400 dark:border-gray-500 pl-4 py-1 my-3 bg-gray-50 dark:bg-gray-800/30 rounded-r-lg italic" {...props} />
                                                     ),
-                                                blockquote: ({ node, ...props }) => (
-                                                    <blockquote className="border-l-4 border-gray-400 dark:border-gray-500 pl-4 py-1 my-3 bg-gray-50 dark:bg-gray-800/30 rounded-r-lg italic" {...props} />
-                                                ),
-                                                ul: ({ node, ...props }) => <ul className="list-disc list-inside my-3 space-y-1 ml-2" {...props} />,
-                                                ol: ({ node, ...props }) => <ol className="list-decimal list-inside my-3 space-y-1 ml-2" {...props} />,
-                                                li: ({ node, ...props }) => <li className="pl-1" {...props} />,
-                                                h1: ({ node, ...props }) => <h1 className="text-2xl font-bold mt-6 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700" {...props} />,
-                                                h2: ({ node, ...props }) => <h2 className="text-xl font-bold mt-5 mb-3" {...props} />,
-                                                h3: ({ node, ...props }) => <h3 className="text-lg font-bold mt-4 mb-2" {...props} />,
-                                                h4: ({ node, ...props }) => <h4 className="text-base font-bold mt-4 mb-2" {...props} />,
-                                                h5: ({ node, ...props }) => <h5 className="text-sm font-bold mt-3 mb-1" {...props} />,
-                                                h6: ({ node, ...props }) => <h6 className="text-xs font-bold mt-3 mb-1 uppercase tracking-wider opacity-80" {...props} />,
-                                                hr: ({ node, ...props }) => <hr className="my-6 border-t-2 border-dashed border-gray-300 dark:border-gray-600 opacity-50" {...props} />,
-                                                img: ({ node, ...props }) => <img className="rounded-xl max-w-full h-auto my-4 shadow-md mx-auto" {...props} />,
-                                            }}
-                                        >
-                                            {msg.text}
-                                        </ReactMarkdown>
+                                                    ul: ({ node, ...props }) => <ul className="list-disc list-inside my-3 space-y-1 ml-2" {...props} />,
+                                                    ol: ({ node, ...props }) => <ol className="list-decimal list-inside my-3 space-y-1 ml-2" {...props} />,
+                                                    li: ({ node, ...props }) => <li className="pl-1" {...props} />,
+                                                    h1: ({ node, ...props }) => <h1 className="text-2xl font-bold mt-6 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700" {...props} />,
+                                                    h2: ({ node, ...props }) => <h2 className="text-xl font-bold mt-5 mb-3" {...props} />,
+                                                    h3: ({ node, ...props }) => <h3 className="text-lg font-bold mt-4 mb-2" {...props} />,
+                                                    h4: ({ node, ...props }) => <h4 className="text-base font-bold mt-4 mb-2" {...props} />,
+                                                    h5: ({ node, ...props }) => <h5 className="text-sm font-bold mt-3 mb-1" {...props} />,
+                                                    h6: ({ node, ...props }) => <h6 className="text-xs font-bold mt-3 mb-1 uppercase tracking-wider opacity-80" {...props} />,
+                                                    hr: ({ node, ...props }) => <hr className="my-6 border-t-2 border-dashed border-gray-300 dark:border-gray-600 opacity-50" {...props} />,
+                                                    img: ({ node, ...props }) => <img className="rounded-xl max-w-full h-auto my-4 shadow-md mx-auto" {...props} />,
+                                                }}
+                                            >
+                                                {msg.text}
+                                            </ReactMarkdown>
+                                        )}
                                     </div>
                                     <span className={`text-[10px] opacity-40 mt-1 block ${msg.type === 'user' ? 'text-right' : ''}`}>
                                         {msg.timestamp.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}

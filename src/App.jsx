@@ -24,7 +24,11 @@ import {
     Sun,
     Sunset,
     Rocket,
-    Sparkles
+    Sparkles,
+    Trophy,
+    GraduationCap,
+    Briefcase,
+    User
 } from 'lucide-react';
 
 const App = () => {
@@ -655,7 +659,7 @@ const App = () => {
                                 year: '2020 - Present',
                                 side: 'left',
                                 title: 'Fullstack Web Developer',
-                                desc: 'Membangun arsitektur Laravel yang scalable dengan optimasi database tingkat tinggi.',
+                                desc: 'Membangun arsitektur perangkat lunak yang scalable dengan optimasi performa dan basis data tingkat tinggi.',
                                 icon: <Code2 />,
                                 tag: 'Tech',
                                 color: 'text-cyan-400',
@@ -681,17 +685,45 @@ const App = () => {
                                 } : null
                             },
                             {
+                                year: '2025',
+                                side: 'left',
+                                title: 'Graduated bachelor of computer science',
+                                desc: 'Meraih gelar Sarjana Ilmu Komputer, menunjukkan kemampuan keilmuan di bidang teknologi informasi.',
+                                icon: <GraduationCap />,
+                                tag: 'Education',
+                                color: 'text-cyan-500',
+                                action: {
+                                    label: 'Lihat Legal',
+                                    onClick: () => window.open('https://pddikti.kemdiktisaintek.go.id/detail-mahasiswa/KJAcCfhZakqll6Ezqr9KK0gJmbaopV5wsOTGenHmiSZpS0eiPGONc2gaIS9i9W5HEvor_g==', '_blank'),
+                                    icon: <ChevronRight size={14} />
+                                }
+                            },
+                            {
+                                year: '2025',
+                                side: 'right',
+                                title: '2rd Winner of CSM National Contest',
+                                desc: 'Meraih predikat juara 2 dalam kompetisi Customer Service Management tingkat nasional berkat inovasi SPK digital untuk tracking pemenuhan janji konsumen.',
+                                icon: <Trophy />,
+                                tag: 'Competition',
+                                color: 'text-rose-500',
+                                action: {
+                                    label: 'Lihat Berita Resmi',
+                                    onClick: () => window.open('https://www.mitsubishi-motors.co.id/siaran-pers/mmksi-gelar-national-contest-2025-perkuat-standar-layanan-terbaik-bagi-konsumen-mitsubishi', '_blank'),
+                                    icon: <ChevronRight size={14} />
+                                }
+                            },
+                            {
                                 year: 'The Intersection',
                                 side: 'center',
                                 title: 'Hybrid Solution Architect',
-                                desc: 'Membangun sistem booking otomatis yang menurunkan komplain pelanggan sebesar 40% melalui UX yang intuitif.',
+                                desc: 'Merancang solusi digital terintegrasi yang mampu menekan kendala interaksi pengguna melalui kombinasi logika sistem dan UX yang intuitif.',
                                 icon: <Zap />,
                                 tag: 'The Sweet Spot',
                                 color: 'text-amber-400'
                             }
                         ].map((item, idx) => (
                             <div key={idx} className={`relative mb-16 flex flex-col items-center z-10 ${item.side === 'left' ? 'md:flex-row' : item.side === 'right' ? 'md:flex-row-reverse' : ''}`}>
-                                <div className={`w-full md:w-1/2 p-4 ${item.side === 'left' ? 'md:text-right md:pr-12' : item.side === 'right' ? 'md:text-left md:pl-12' : 'hidden'}`}>
+                                <div className={`w-full md:w-1/2 p-4 text-center ${item.side === 'left' ? 'md:text-right md:pr-12' : item.side === 'right' ? 'md:text-left md:pl-12' : 'hidden'}`}>
                                     <span className={`text-sm font-bold uppercase tracking-widest ${item.color}`}>{item.year}</span>
                                     <h3 className="text-2xl font-bold mt-2">{item.title}</h3>
                                     <p className="mt-4 opacity-70">{item.desc}</p>
@@ -871,14 +903,14 @@ const App = () => {
                     <div className="grid md:grid-cols-2 gap-8">
                         {[
                             {
-                                title: "EduLink Pro Dashboard",
-                                challenge: "Menangani 10rb request/menit dengan latency di bawah 100ms.",
-                                solution: "Optimasi Query Laravel & Implementasi Redis Caching.",
-                                impact: "Guru melaporkan navigasi terasa 3x lebih cepat (User Happy!).",
-                                tags: ["Laravel", "Redis", "Vue.js"]
+                                title: "Digital Checksheet Kebersihan",
+                                challenge: "Menghindari manipulasi pengecekan oleh karyawan agar ruangan selalu bersih.",
+                                solution: "Digitalisasi checksheet dengan sistem pelaporan terintegrasi.",
+                                impact: "Ruangan terjamin selalu bersih tanpa ada celah manipulasi pengecekan.",
+                                tags: ["Laravel", "Vue.js", "System"]
                             },
                             {
-                                title: "Compassion Care CRM",
+                                title: "Customer Satisfaction CRM",
                                 challenge: "System yang belum paperless membuat CS stres dan sering salah input.",
                                 solution: "Redesain alur kerja berbasis CRM yang terintegrasi.",
                                 impact: "Human error turun 60%, produktivitas agen naik drastis.",
@@ -920,6 +952,153 @@ const App = () => {
                             </div>
                         ))}
                     </div>
+
+                    {/* --- Other Projects --- */}
+                    <div className="mt-24">
+                        <div className="flex items-center gap-6 mb-12">
+                            <h3 className="text-3xl font-black">Other Projects</h3>
+                            <div className={`h-px flex-1 ${isLogic ? 'bg-slate-800' : 'bg-stone-200'}`}></div>
+                        </div>
+
+                        <div className="flex flex-col gap-4">
+                            {[
+                                { title: "Ateka Tehnik", category: "Catalog, Portfolio, and Blog News", year: "2026", desc: "Perusahaan yang bergerak di bidang alat dan mesin Rice Milling Unit.", link: "https://atekatehnik.com" },
+                                { title: "BikinLiga Online", category: "Platform", year: "2024", desc: "Otomatisasi manajemen turnamen dan leaderboard real-time untuk komunitas eFootball.", link: "https://bikinliga.online" },
+                                { title: "Cuma Click", category: "SaaS Utility", year: "2022", desc: "Manajemen tautan profesional dengan analitik performa tingkat lanjut dan proteksi akses terenkripsi.", link: "https://cuma.click" },
+                                { title: "Metra AI Advisor", category: "AI Engine", year: "2025", desc: "Integrasi kecerdasan buatan prediktif terukur untuk menghadirkan panduan analisis nasib yang presisi.", link: "https://aimetra.fun" },
+                                { title: "Patungin", category: "Group Utility", year: "2026", desc: "Catat pengeluaran bersama, hitung pembagian otomatis, dan selesaikan tagihan teman tanpa rasa segan.", link: "https://patungin.bewhy.id" }
+                            ].map((item, idx) => (
+                                <div key={idx} className={`group relative border rounded-3xl overflow-hidden transition-all duration-500 hover:shadow-2xl ${theme.card}`}>
+                                    <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer relative z-10 bg-transparent">
+                                        <div className="flex items-center gap-6">
+                                            <span className={`text-sm font-mono opacity-40 font-bold`}>0{idx + 1}</span>
+                                            <div>
+                                                <h4 className={`text-xl md:text-2xl font-bold transition-colors duration-300 ${isLogic ? 'group-hover:text-cyan-400' : 'group-hover:text-rose-500'}`}>{item.title}</h4>
+                                                <p className="text-sm opacity-60 mt-1">{item.desc}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-4 md:gap-8 ml-10 md:ml-0">
+                                            <span className="text-xs font-bold px-3 py-1 bg-slate-500/10 rounded-full uppercase tracking-wider">{item.category}</span>
+                                            <span className="text-sm opacity-50 font-mono font-bold">{item.year}</span>
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 group-hover:rotate-45 group-hover:scale-110 ${isLogic ? 'bg-cyan-500/10 text-cyan-400' : 'bg-rose-500/10 text-rose-500'}`}>
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Expandable Preview Section on Hover */}
+                                    <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-700 ease-in-out">
+                                        <div className="overflow-hidden">
+                                            <div className="p-6 md:p-8 pt-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-150 transform translate-y-4 group-hover:translate-y-0">
+                                                <div className={`w-full aspect-video md:aspect-[21/9] rounded-2xl border flex flex-col overflow-hidden relative group/iframe ${isLogic ? 'bg-slate-950 border-slate-800' : 'bg-stone-100 border-stone-200'}`}>
+                                                    {/* Browser Mockup Header */}
+                                                    <div className={`h-10 flex items-center px-4 justify-between border-b ${isLogic ? 'border-slate-800 bg-slate-900/80' : 'border-stone-200 bg-white/80'} backdrop-blur-md`}>
+                                                        <div className="flex gap-2">
+                                                            <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
+                                                            <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
+                                                            <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+                                                        </div>
+                                                        <div className={`text-[10px] font-mono opacity-40 flex items-center gap-1 ${isLogic ? 'text-cyan-400' : 'text-stone-500'}`}>
+                                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                                            {item.link ? item.link.replace(/^https?:\/\//, '') : `preview.bewhy.id/${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                                                        </div>
+                                                        <div className="w-10"></div>
+                                                    </div>
+                                                    {/* Mock & Actual Iframe Content */}
+                                                    <div className="flex-1 relative overflow-hidden bg-gradient-to-br from-slate-500/5 to-transparent group/preview">
+
+                                                        {/* Loading/Fallback State (Tampilan Sebelumnya) */}
+                                                        <div className="absolute inset-0 flex flex-col items-center justify-center -z-10 bg-inherit pb-6 pointer-events-none">
+                                                            <div className={`absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${isLogic ? 'from-cyan-500/30' : 'from-rose-500/30'} to-transparent`}></div>
+                                                            <div className="text-center relative z-10 animate-pulse transition-transform duration-700 group-hover/preview:scale-110">
+                                                                <div className={`inline-flex items-center justify-center w-20 h-20 rounded-3xl mb-6 shadow-2xl ${isLogic ? 'bg-cyan-500/20 text-cyan-400 backdrop-blur-md border border-cyan-500/30' : 'bg-white text-rose-500 border border-rose-100'}`}>
+                                                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                                                                </div>
+                                                                <p className={`text-xl font-black mb-2 ${isLogic ? 'text-white' : 'text-stone-800'}`}>Loading Preview...</p>
+                                                                <p className={`text-sm font-medium ${isLogic ? 'text-cyan-400/80' : 'text-rose-500/80'}`}>Interactive preview environment</p>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Actual Iframe */}
+                                                        {item.link && (
+                                                            <iframe
+                                                                src={item.link}
+                                                                className="absolute inset-0 w-full h-full border-0 z-20 pointer-events-none"
+                                                                loading="lazy"
+                                                                title={item.title}
+                                                                style={{ backgroundColor: 'transparent' }}
+                                                            />
+                                                        )}
+
+                                                        {/* Overlay Action Button on Hover */}
+                                                        {item.link && (
+                                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/iframe:opacity-100 transition-opacity duration-300 z-30 flex items-center justify-center backdrop-blur-sm">
+                                                                <a
+                                                                    href={item.link}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 transform translate-y-4 group-hover/iframe:translate-y-0 transition-all duration-300 hover:scale-105 shadow-xl ${isLogic ? 'bg-cyan-500 text-slate-950' : 'bg-rose-500 text-white'}`}
+                                                                    onClick={(e) => e.stopPropagation()} /* cegah card buble click */
+                                                                >
+                                                                    Open Live Site <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                                                </a>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* --- Alternate Direction / Pilih Jalur --- */}
+            <section className="py-24 border-t border-slate-500/10 z-10 relative">
+                <div className="container mx-auto px-6">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl font-bold mb-4">Pilih Jalur Kolaborasi</h2>
+                        <p className="opacity-60 text-lg max-w-2xl mx-auto">
+                            Bagaimana kita akan bekerja sama? Pilih pengarah yang paling sesuai dengan kebutuhan Anda.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                        <a
+                            href="https://hello.bewhy.id"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`group p-10 rounded-3xl border transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center ${theme.card}`}
+                        >
+                            <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 transition-colors duration-500 ${isLogic ? 'bg-cyan-500/10 text-cyan-500 group-hover:bg-cyan-500 group-hover:text-white' : 'bg-cyan-500/10 text-cyan-600 group-hover:bg-cyan-500 group-hover:text-white'}`}>
+                                <Briefcase size={32} />
+                            </div>
+                            <h3 className="text-2xl font-bold mb-3">Untuk Perusahaan</h3>
+                            <p className="opacity-70 mb-8 max-w-sm">Jelajahi solusi B2B, profil perusahaan, dan layanan kami untuk skala bisnis.</p>
+                            <span className={`px-6 py-3 rounded-full border text-sm font-bold w-full transition-all group-hover:bg-cyan-500 group-hover:border-cyan-500 group-hover:text-white ${isLogic ? 'border-cyan-500/30 text-cyan-400' : 'border-stone-300 text-stone-700'}`}>
+                                Menuju hello.bewhy.id <ChevronRight size={16} className="inline ml-1" />
+                            </span>
+                        </a>
+
+                        <a
+                            href="https://me.bewhy.id"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`group p-10 rounded-3xl border transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center ${theme.card}`}
+                        >
+                            <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 transition-colors duration-500 ${isLogic ? 'bg-rose-500/10 text-rose-500 group-hover:bg-rose-500 group-hover:text-white' : 'bg-rose-500/10 text-rose-500 group-hover:bg-rose-500 group-hover:text-white'}`}>
+                                <User size={32} />
+                            </div>
+                            <h3 className="text-2xl font-bold mb-3">Untuk Personal</h3>
+                            <p className="opacity-70 mb-8 max-w-sm">Lihat pengalaman personal, portfolio individu, dan pemikiran saya secara lebih mendalam.</p>
+                            <span className={`px-6 py-3 rounded-full border text-sm font-bold w-full transition-all group-hover:bg-rose-500 group-hover:border-rose-500 group-hover:text-white ${isLogic ? 'border-rose-500/30 text-rose-400' : 'border-stone-300 text-stone-700'}`}>
+                                Menuju me.bewhy.id <ChevronRight size={16} className="inline ml-1" />
+                            </span>
+                        </a>
+                    </div>
                 </div>
             </section>
 
@@ -944,9 +1123,9 @@ const App = () => {
                             >
                                 <MessageSquare className={theme.accent} />
                                 <span className="font-bold">Start a Conversation</span>
-                                <span className="text-xs opacity-50">Gaya Chat Interaktif</span>
+                                <span className="text-xs opacity-50">Ceritakan Kebutuhanmu dengan Asistenku</span>
                             </button>
-                            <a href="https://github.com/Barodillah" target="_blank" className={`p-6 rounded-2xl border flex flex-col items-center gap-3 transition-all hover:shadow-2xl ${theme.card}`}>
+                            <a href="https://github.com/Barodillah" target="_blank" className={`p-6 rounded-2xl border flex flex-col items-center gap-3 transition-all hover:shadow-2xl hover:scale-105 cursor-pointer ${theme.card}`}>
                                 <Github className={theme.accent} />
                                 <span className="font-bold">Review My Logic</span>
                                 <span className="text-xs opacity-50">Eksplorasi Repo GitHub</span>
@@ -961,11 +1140,14 @@ const App = () => {
                             </button>
                         </div>
 
-                        <div className="border-t border-slate-500/10 pt-12 flex flex-col md:flex-row justify-between items-center gap-6 opacity-50 text-sm">
-                            <p>© {new Date().getFullYear()} Barod Yoedhistira. Logic-Empathy Framework v2.5</p>
-                            <div className="flex gap-8">
+                        <div className="border-t border-slate-500/20 pt-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 text-sm text-slate-400">
+                            <div className="flex flex-col gap-1">
+                                <p className={`font-bold ${isLogic ? 'text-white' : 'text-stone-800'}`}>Bewhy Indonesia</p>
+                                <p className="mt-2 opacity-60">© {new Date().getFullYear()} PT BAHASA YOEDHISTIRA DIGITAL. Logic-Empathy Framework v2.5</p>
+                            </div>
+                            <div className="flex gap-8 justify-center w-full md:w-auto">
                                 <a href="https://www.linkedin.com/in/barod-abdillah-284509169/" target="_blank" className="hover:text-cyan-400 transition-colors">LinkedIn</a>
-                                <a href="https://www.instagram.com/barodillah/" target="_blank" className="hover:text-cyan-400 transition-colors">Instagram</a>
+                                <a href="https://www.instagram.com/bewhy.id/" target="_blank" className="hover:text-cyan-400 transition-colors">Instagram</a>
                                 <a href="mailto:gmail@bewhy.id" target="_blank" className="hover:text-cyan-400 transition-colors">Email</a>
                             </div>
                         </div>

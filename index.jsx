@@ -12,7 +12,9 @@ import {
   Zap,
   Search,
   Layers,
-  Repeat
+  Repeat,
+  Briefcase,
+  User
 } from 'lucide-react';
 
 const App = () => {
@@ -529,6 +531,52 @@ const App = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* --- Alternate Options --- */}
+      <section className="py-24 border-t border-slate-500/10 z-10 relative">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Pilih Jalur Kolaborasi</h2>
+            <p className="opacity-60 text-lg max-w-2xl mx-auto">
+              Bagaimana kita akan bekerja sama? Pilih pengarah alternatif yang paling sesuai dengan kebutuhan Anda saat ini.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <a 
+              href="https://hello.bewhy.id" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={`group p-10 rounded-3xl border transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center ${theme.card}`}
+            >
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-cyan-500/10 text-cyan-500 group-hover:bg-cyan-500 group-hover:text-white transition-colors duration-500`}>
+                <Briefcase size={32} />
+              </div>
+              <h3 className="text-2xl font-bold mb-3">Untuk Perusahaan</h3>
+              <p className="opacity-70 mb-8 max-w-sm">Jelajahi solusi B2B kami, profil perusahaan, dan layanan untuk skala makro.</p>
+              <span className={`px-6 py-3 rounded-full border text-sm font-bold w-full transition-all group-hover:bg-cyan-500 group-hover:border-cyan-500 group-hover:text-white ${isLogic ? 'border-cyan-500/30 text-cyan-400' : 'border-stone-300 text-stone-700'}`}>
+                Menuju hello.bewhy.id <ChevronRight size={16} className="inline ml-1" />
+              </span>
+            </a>
+
+            <a 
+              href="https://me.bewhy.id" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={`group p-10 rounded-3xl border transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center ${theme.card}`}
+            >
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-rose-500/10 text-rose-500 group-hover:bg-rose-500 group-hover:text-white transition-colors duration-500`}>
+                <User size={32} />
+              </div>
+              <h3 className="text-2xl font-bold mb-3">Untuk Personal</h3>
+              <p className="opacity-70 mb-8 max-w-sm">Lihat pengalaman personal, portfolio individu, dan pemikiran saya secara komprehensif.</p>
+              <span className={`px-6 py-3 rounded-full border text-sm font-bold w-full transition-all group-hover:bg-rose-500 group-hover:border-rose-500 group-hover:text-white ${isLogic ? 'border-rose-500/30 text-rose-400' : 'border-stone-300 text-stone-700'}`}>
+                Menuju me.bewhy.id <ChevronRight size={16} className="inline ml-1" />
+              </span>
+            </a>
           </div>
         </div>
       </section>
